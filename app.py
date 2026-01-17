@@ -1,27 +1,29 @@
-from flask import Flask, jsonify, request, render_template
+import os
+from flask import Flask, jsonify, request, render_template, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-from flask import render_template
 
-@app.route("/ui") 
-def ui():
-    return render_template("index.html")
-
-
-
+# 1. Initialize Flask App FIRST
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///study_cloud.db'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-me')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'your-secret-key-change-this'  # Change for production
-db = SQLAlchemy(app)
 
+# 2. Database Configuration (Render Postgres or Local SQLite)
+db_uri = os.environ.get('DATABASE_URL')
+if db_uri and db_uri.startswith('postgres://'):
+    db_uri = db_uri.replace('postgres://', 'postgresql://')
+app.config['SQLALCHEMY_DATABASE_URI'] = db_uri or 'sqlite:///study_cloud.db'
+
+# 3. Initialize Extensions
+db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_message = "Please log in to see your tasks"
+login_manager.login_view = "ui"  # Redirect to login page if unauthorized
 
-# User model
+# 4. Database Models
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(150), unique=True, nullable=False)
@@ -33,7 +35,6 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-# Task model (add user_id)
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
@@ -41,23 +42,31 @@ class Task(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-# User loader for Flask-Login
+# 5. User Loader
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Create tables
+# 6. Create Tables (Auto-create on startup)
 with app.app_context():
     db.create_all()
 
+# 7. Routes
 @app.route("/")
 def home():
-    return "StudyCloud API with auth + SQLite is running!"
+    return "StudyCloud API is running! Go to /ui to login."
 
-# Register new user
+@app.route("/ui")
+def ui():
+    return render_template("index.html")
+
+# --- Auth Routes ---
 @app.route("/register", methods=["POST"])
 def register():
     data = request.get_json()
+    if not data or not data.get('email') or not data.get('password'):
+        return jsonify({"error": "Missing email or password"}), 400
+    
     if User.query.filter_by(email=data.get('email')).first():
         return jsonify({"error": "Email already exists"}), 400
     
@@ -67,30 +76,33 @@ def register():
     db.session.commit()
     return jsonify({"message": "User created"}), 201
 
-# Login
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+        
     user = User.query.filter_by(email=data.get('email')).first()
     if user and user.check_password(data.get('password')):
         login_user(user)
         return jsonify({"message": "Logged in"}), 200
     return jsonify({"error": "Invalid credentials"}), 401
 
-# Logout
 @app.route("/logout", methods=["POST"])
 @login_required
 def logout():
     logout_user()
     return jsonify({"message": "Logged out"})
 
-# Protected tasks endpoints
+# --- Task Routes ---
 @app.route("/tasks", methods=["GET"])
 @login_required
 def get_tasks():
     tasks = Task.query.filter_by(user_id=current_user.id).all()
     return jsonify([{
-        "id": t.id, "title": t.title, "done": t.done
+        "id": t.id, 
+        "title": t.title, 
+        "done": t.done
     } for t in tasks])
 
 @app.route("/tasks", methods=["POST"])
@@ -128,5 +140,6 @@ def delete_task(task_id):
     db.session.commit()
     return jsonify({"message": "Task deleted"})
 
+# 8. Run App
 if __name__ == "__main__":
     app.run(debug=True)
