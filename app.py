@@ -1,249 +1,151 @@
-import os
-from flask import Flask, jsonify, request, render_template, abort
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
-import logging
-from functools import wraps
+import os
 
-# 1. Initialize Flask App
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-me')
+
+# Configuration
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///studycloud.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# 2. Database Configuration
-db_uri = os.environ.get('DATABASE_URL')
-if db_uri and db_uri.startswith('postgres://'):
-    db_uri = db_uri.replace('postgres://', 'postgresql://')
-app.config['SQLALCHEMY_DATABASE_URI'] = db_uri or 'sqlite:///study_cloud.db'
+# Fix for Render's postgres:// URL (needs postgresql://)
+if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
+    app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql://', 1)
 
-# 3. Initialize Extensions
+# Initialize extensions
 db = SQLAlchemy(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_message = "Please log in to access this page"
-login_manager.login_view = "ui"
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 
-# 4. Configure Logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Auto-create database tables if they don't exist
+with app.app_context():
+    db.create_all()
+    print('✅ Database initialized!')
 
-# 5. ADMIN EMAIL (ONLY THIS USER CAN ACCESS ADMIN PANEL)
-ADMIN_EMAIL = "eddaoudiaamir@gmail.com"
-
-# 6. Database Models
+# Models
 class User(UserMixin, db.Model):
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(150), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    tasks = db.relationship('Task', backref='owner', lazy=True, cascade='all, delete-orphan')
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(200), nullable=False)
+    courses = db.relationship('Course', backref='student', lazy=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
-
+    
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-    
-    def is_admin(self):
-        return self.email == ADMIN_EMAIL
 
-class Task(db.Model):
+class Course(db.Model):
+    __tablename__ = 'courses'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
-    done = db.Column(db.Boolean, default=False)
-    priority = db.Column(db.String(20), default='medium')
-    deadline = db.Column(db.String(50), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    description = db.Column(db.Text)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
-# 7. User Loader
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# 8. ADMIN DECORATOR (ONLY YOUR EMAIL)
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated:
-            return jsonify({"error": "Authentication required"}), 401
-        if current_user.email != ADMIN_EMAIL:
-            logger.warning(f"⚠️ Unauthorized admin access attempt by {current_user.email}")
-            return jsonify({"error": "Access Denied! Only eddaoudiaamir@gmail.com can access this panel 🚫"}), 403
-        return f(*args, **kwargs)
-    return decorated_function
+# Routes
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-# 9. Create Tables
-with app.app_context():
-    db.create_all()
-
-# 10. Basic Routes
-@app.route("/")
-def home():
-    return "StudyCloud API is running! Go to /ui to login."
-
-@app.route("/ui")
-def ui():
-    return render_template("index.html")
-
-# 11. Auth Routes
-@app.route("/register", methods=["POST"])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
-    data = request.get_json()
-    if not data or not data.get('email') or not data.get('password'):
-        return jsonify({"error": "Missing email or password"}), 400
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
     
-    if User.query.filter_by(email=data.get('email')).first():
-        return jsonify({"error": "Email already exists"}), 400
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        # Check if user exists
+        if User.query.filter_by(username=username).first():
+            flash('Username already exists!', 'danger')
+            return redirect(url_for('register'))
+        
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered!', 'danger')
+            return redirect(url_for('register'))
+        
+        # Create new user
+        user = User(username=username, email=email)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        
+        flash('Registration successful! Please login.', 'success')
+        return redirect(url_for('login'))
     
-    user = User(email=data.get('email'))
-    user.set_password(data.get('password'))
-    db.session.add(user)
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        user = User.query.filter_by(username=username).first()
+        
+        if user and user.check_password(password):
+            login_user(user)
+            flash('Login successful!', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid username or password!', 'danger')
+    
+    return render_template('login.html')
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    courses = Course.query.filter_by(user_id=current_user.id).all()
+    return render_template('dashboard.html', courses=courses)
+
+@app.route('/add_course', methods=['POST'])
+@login_required
+def add_course():
+    title = request.form.get('title')
+    description = request.form.get('description')
+    
+    course = Course(title=title, description=description, user_id=current_user.id)
+    db.session.add(course)
     db.session.commit()
     
-    logger.info(f"New user registered: {user.email}")
-    return jsonify({"message": "User created successfully"}), 201
+    flash('Course added successfully!', 'success')
+    return redirect(url_for('dashboard'))
 
-@app.route("/login", methods=["POST"])
-def login():
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "No data provided"}), 400
-        
-    user = User.query.filter_by(email=data.get('email')).first()
-    if user and user.check_password(data.get('password')):
-        login_user(user)
-        logger.info(f"✅ User logged in: {user.email} (Admin: {user.is_admin()})")
-        return jsonify({
-            "message": "Logged in", 
-            "email": user.email,
-            "is_admin": user.is_admin()
-        }), 200
+@app.route('/delete_course/<int:course_id>')
+@login_required
+def delete_course(course_id):
+    course = Course.query.get_or_404(course_id)
     
-    logger.warning(f"❌ Failed login attempt for: {data.get('email')}")
-    return jsonify({"error": "Invalid credentials"}), 401
+    if course.user_id != current_user.id:
+        flash('Unauthorized action!', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    db.session.delete(course)
+    db.session.commit()
+    
+    flash('Course deleted successfully!', 'success')
+    return redirect(url_for('dashboard'))
 
-@app.route("/logout", methods=["POST"])
+@app.route('/logout')
 @login_required
 def logout():
-    logger.info(f"User logged out: {current_user.email}")
     logout_user()
-    return jsonify({"message": "Logged out"})
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('index'))
 
-# 12. Task Routes
-@app.route("/tasks", methods=["GET"])
-@login_required
-def get_tasks():
-    tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()
-    return jsonify([{
-        "id": t.id,
-        "title": t.title,
-        "done": t.done,
-        "priority": t.priority,
-        "deadline": t.deadline
-    } for t in tasks])
-
-@app.route("/tasks", methods=["POST"])
-@login_required
-def create_task():
-    data = request.get_json()
-    new_task = Task(
-        title=data.get("title", ""),
-        priority=data.get("priority", "medium"),
-        deadline=data.get("deadline"),
-        user_id=current_user.id
-    )
-    db.session.add(new_task)
-    db.session.commit()
-    return jsonify({
-        "id": new_task.id,
-        "title": new_task.title,
-        "done": new_task.done,
-        "priority": new_task.priority,
-        "deadline": new_task.deadline
-    }), 201
-
-@app.route("/tasks/<int:task_id>", methods=["PUT"])
-@login_required
-def update_task(task_id):
-    task = Task.query.filter_by(id=task_id, user_id=current_user.id).first_or_404()
-    data = request.get_json()
-    task.title = data.get("title", task.title)
-    task.done = data.get("done", task.done)
-    task.priority = data.get("priority", task.priority)
-    task.deadline = data.get("deadline", task.deadline)
-    db.session.commit()
-    return jsonify({
-        "id": task.id,
-        "title": task.title,
-        "done": task.done,
-        "priority": task.priority,
-        "deadline": task.deadline
-    })
-
-@app.route("/tasks/<int:task_id>", methods=["DELETE"])
-@login_required
-def delete_task(task_id):
-    task = Task.query.filter_by(id=task_id, user_id=current_user.id).first_or_404()
-    db.session.delete(task)
-    db.session.commit()
-    return jsonify({"message": "Task deleted"})
-
-# 13. USER STATS ROUTE
-@app.route("/stats")
-@login_required
-def get_stats():
-    total_tasks = Task.query.filter_by(user_id=current_user.id).count()
-    completed = Task.query.filter_by(user_id=current_user.id, done=True).count()
-    pending = total_tasks - completed
-    high_priority = Task.query.filter_by(user_id=current_user.id, priority='high', done=False).count()
-    
-    return jsonify({
-        "user_email": current_user.email,
-        "total_tasks": total_tasks,
-        "completed": completed,
-        "pending": pending,
-        "high_priority": high_priority,
-        "is_admin": current_user.is_admin(),
-        "member_since": current_user.created_at.strftime("%d/%m/%Y") if current_user.created_at else "N/A"
-    })
-
-# 14. SECURE ADMIN ROUTE (ONLY eddaoudiaamir@gmail.com)
-@app.route("/admin/users")
-@login_required
-@admin_required
-def view_users():
-    """ONLY eddaoudiaamir@gmail.com CAN ACCESS THIS"""
-    users = User.query.all()
-    user_list = [{
-        "id": u.id,
-        "email": u.email,
-        "is_you": u.email == ADMIN_EMAIL,
-        "total_tasks": Task.query.filter_by(user_id=u.id).count(),
-        "registered": u.created_at.strftime("%d/%m/%Y %H:%M") if u.created_at else "N/A"
-    } for u in users]
-    
-    logger.info(f"🔐 Admin panel accessed by: {current_user.email}")
-    
-    return jsonify({
-        "total_users": len(user_list), 
-        "users": user_list,
-        "accessed_by": current_user.email,
-        "admin_email": ADMIN_EMAIL
-    })
-
-# 15. Health Check
-@app.route("/health")
-def health():
-    return jsonify({
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "total_users": User.query.count(),
-        "total_tasks": Task.query.count()
-    })
-
-# 16. Run App
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
