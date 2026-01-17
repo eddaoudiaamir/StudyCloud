@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 50px auto; }
+        input, textarea { width: 100%; padding: 10px; margin: 10px 0; }
+        button { padding: 10px 20px; background: #28a745; color: white; border: none; }
+        .course { border: 1px solid #ddd; padding: 15px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard</h1>
+    <p>Welcome! <a href="/logout">Logout</a></p>
+    
+    <h2>Add Course</h2>
+    <form method="POST" action="/add_course">
+        <input type="text" name="title" placeholder="Course Title" required>
+        <textarea name="description" placeholder="Description"></textarea>
+        <button type="submit">Add Course</button>
+    </form>
+</body>
+</html>
