@@ -21,7 +21,7 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_message = "Please log in to see your tasks"
-login_manager.login_view = "ui"  # Redirect to login page if unauthorized
+login_manager.login_view = "ui"
 
 # 4. Database Models
 class User(UserMixin, db.Model):
@@ -39,6 +39,8 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     done = db.Column(db.Boolean, default=False)
+    priority = db.Column(db.String(20), default='medium')  # low, medium, high
+    deadline = db.Column(db.String(50), nullable=True)  # Date string
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
@@ -94,28 +96,37 @@ def logout():
     logout_user()
     return jsonify({"message": "Logged out"})
 
-# --- Task Routes ---
+# --- Task Routes (Enhanced with priority and deadline) ---
 @app.route("/tasks", methods=["GET"])
 @login_required
 def get_tasks():
-    tasks = Task.query.filter_by(user_id=current_user.id).all()
+    tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()
     return jsonify([{
         "id": t.id, 
         "title": t.title, 
-        "done": t.done
+        "done": t.done,
+        "priority": t.priority,
+        "deadline": t.deadline
     } for t in tasks])
 
 @app.route("/tasks", methods=["POST"])
 @login_required
 def create_task():
     data = request.get_json()
-    new_task = Task(title=data.get("title", ""), user_id=current_user.id)
+    new_task = Task(
+        title=data.get("title", ""),
+        priority=data.get("priority", "medium"),
+        deadline=data.get("deadline"),
+        user_id=current_user.id
+    )
     db.session.add(new_task)
     db.session.commit()
     return jsonify({
         "id": new_task.id,
         "title": new_task.title,
-        "done": new_task.done
+        "done": new_task.done,
+        "priority": new_task.priority,
+        "deadline": new_task.deadline
     }), 201
 
 @app.route("/tasks/<int:task_id>", methods=["PUT"])
@@ -125,11 +136,15 @@ def update_task(task_id):
     data = request.get_json()
     task.title = data.get("title", task.title)
     task.done = data.get("done", task.done)
+    task.priority = data.get("priority", task.priority)
+    task.deadline = data.get("deadline", task.deadline)
     db.session.commit()
     return jsonify({
         "id": task.id,
         "title": task.title,
-        "done": task.done
+        "done": task.done,
+        "priority": task.priority,
+        "deadline": task.deadline
     })
 
 @app.route("/tasks/<int:task_id>", methods=["DELETE"])
