@@ -147,5 +147,20 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
 
+# Add this route BEFORE if __name__ == '__main__':
+@app.route('/admin')
+@login_required
+def admin():
+    # Simple protection - only show if username is 'admin'
+    if current_user.username != 'admin':
+        flash('Access denied!', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    users = User.query.all()
+    courses = Course.query.all()
+    return render_template('admin.html', users=users, courses=courses)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
+
