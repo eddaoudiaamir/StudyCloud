@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>StudyCloud - BTS Task Manager</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        input { padding: 8px; margin: 5px; width: 250px; }
+        button { padding: 8px 15px; margin: 5px; cursor: pointer; }
+        #tasks-list { list-style: none; padding: 0; }
+        #tasks-list li { padding: 10px; margin: 5px 0; background: #f0f0f0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>📚 StudyCloud Tasks</h1>
+    
+    <div id="login-form">
+        <h3>Login / Register</h3>
+        <input id="email" placeholder="Email" type="email"><br>
+        <input id="password" placeholder="Password" type="password"><br>
+        <button onclick="login()">Login</button>
+        <button onclick="register()">Register</button>
+    </div>
+    
+    <div id="tasks-section" style="display:none;">
+        <h3>Your Tasks</h3>
+        <input id="new-task-title" placeholder="New task title">
+        <button onclick="createTask()">Add Task</button>
+        <button onclick="logout()">Logout</button>
+        <ul id="tasks-list"></ul>
+    </div>
+
+    <script>
+        async function apiCall(endpoint, method='GET', body=null) {
+            const options = {method, credentials: 'include'};
+            if (body) {
+                options.headers = {'Content-Type': 'application/json'};
+                options.body = JSON.stringify(body);
+            }
+            const res = await fetch(endpoint, options);
+            return res.json();
+        }
+
+        async function register() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const data = await apiCall('/register', 'POST', {email, password});
+            alert(data.message || data.error);
+        }
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const data = await apiCall('/login', 'POST', {email, password});
+            if (data.message) {
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('tasks-section').style.display = 'block';
+                loadTasks();
+            } else {
+                alert(data.error);
+            }
+        }
+
+        async function logout() {
+            await apiCall('/logout', 'POST');
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('tasks-section').style.display = 'none';
+        }
+
+        async function loadTasks() {
+            const tasks = await apiCall('/tasks');
+            const list = document.getElementById('tasks-list');
+            list.innerHTML = '';
+            tasks.forEach(task => {
+                const li = document.createElement('li');
+                li.innerHTML = `${task.title} 
+                    <input type="checkbox" ${task.done ? 'checked' : ''} onchange="updateTask(${task.id}, this.checked)">
+                    <button onclick="deleteTask(${task.id})">Delete</button>`;
+                list.appendChild(li);
+            });
+        }
+
+        async function createTask() {
+            const title = document.getElementById('new-task-title').value;
+            await apiCall('/tasks', 'POST', {title});
+            document.getElementById('new-task-title').value = '';
+            loadTasks();
+        }
+
+        async function updateTask(id, done) {
+            await apiCall(`/tasks/${id}`, 'PUT', {done});
+            loadTasks();
+        }
+
+        async function deleteTask(id) {
+            await apiCall(`/tasks/${id}`, 'DELETE');
+            loadTasks();
+        }
+    </script>
+</body>
+</html>
