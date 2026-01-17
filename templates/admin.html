@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel</title>
+    <style>
+        body { font-family: Arial; max-width: 1200px; margin: 50px auto; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #007bff; color: white; }
+        tr:nth-child(even) { background: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>🔐 Admin Panel</h1>
+    <p><a href="/dashboard">← Back to Dashboard</a> | <a href="/logout">Logout</a></p>
+    
+    <h2>👥 All Users ({{ users|length }})</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Courses Count</th>
+        </tr>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.courses|length }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    <h2>📚 All Courses ({{ courses|length }})</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Owner</th>
+        </tr>
+        {% for course in courses %}
+        <tr>
+            <td>{{ course.id }}</td>
+            <td>{{ course.title }}</td>
+            <td>{{ course.description }}</td>
+            <td>{{ course.student.username }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
