@@ -20,19 +20,14 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-# Auto-create database tables if they don't exist
-with app.app_context():
-    db.create_all()
-    print('✅ Database initialized!')
-
-# Models
+# Models - MUST be defined BEFORE db.create_all()
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
-    courses = db.relationship('Course', backref='student', lazy=True)
+    courses = db.relationship('Course', backref='student', lazy=True, cascade='all, delete-orphan')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -47,9 +42,17 @@ class Course(db.Model):
     description = db.Column(db.Text)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
+# Create tables - MUST be AFTER models are defined
+with app.app_context():
+    db.create_all()
+    print('✅ Database tables created successfully!')
+
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    try:
+        return db.session.get(User, int(user_id))
+    except:
+        return None
 
 # Routes
 @app.route('/')
@@ -147,7 +150,6 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
 
-# Add this route BEFORE if __name__ == '__main__':
 @app.route('/admin')
 @login_required
 def admin():
@@ -160,7 +162,5 @@ def admin():
     courses = Course.query.all()
     return render_template('admin.html', users=users, courses=courses)
 
-
 if __name__ == '__main__':
     app.run(debug=True)
-
