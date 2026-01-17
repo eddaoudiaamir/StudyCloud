@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -11,23 +12,23 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-i
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///studycloud.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Fix for Render's postgres:// URL (needs postgresql://)
+# Fix for Render's postgres:// URL
 if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
     app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql://', 1)
 
 # Initialize extensions
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
-login_manager.login_view = 'login'
+login_manager.login_view = 'auth'
 
-# Models - MUST be defined BEFORE db.create_all()
+# Models
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
-    courses = db.relationship('Course', backref='student', lazy=True, cascade='all, delete-orphan')
+    tasks = db.relationship('Task', backref='owner', lazy=True, cascade='all, delete-orphan')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -35,14 +36,17 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-class Course(db.Model):
-    __tablename__ = 'courses'
+class Task(db.Model):
+    __tablename__ = 'tasks'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
+    status = db.Column(db.String(20), default='incomplete')  # complete/incomplete
+    priority = db.Column(db.String(20), default='medium')  # high/medium/low
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
-# Create tables - MUST be AFTER models are defined
+# Create tables
 with app.app_context():
     db.create_all()
     print('✅ Database tables created successfully!')
@@ -57,110 +61,129 @@ def load_user(user_id):
 # Routes
 @app.route('/')
 def index():
-    return render_template('index.html')
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    return redirect(url_for('auth'))
 
-@app.route('/register', methods=['GET', 'POST'])
+@app.route('/auth')
+def auth():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    return render_template('auth.html')
+
+@app.route('/register', methods=['POST'])
 def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
+    username = request.form.get('username')
+    email = request.form.get('email')
+    password = request.form.get('password')
     
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        
-        # Check if user exists
-        if User.query.filter_by(username=username).first():
-            flash('Username already exists!', 'danger')
-            return redirect(url_for('register'))
-        
-        if User.query.filter_by(email=email).first():
-            flash('Email already registered!', 'danger')
-            return redirect(url_for('register'))
-        
-        # Create new user
-        user = User(username=username, email=email)
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
-        
-        flash('Registration successful! Please login.', 'success')
-        return redirect(url_for('login'))
+    if User.query.filter_by(username=username).first():
+        flash('Username already exists!', 'danger')
+        return redirect(url_for('auth'))
     
-    return render_template('register.html')
+    if User.query.filter_by(email=email).first():
+        flash('Email already registered!', 'danger')
+        return redirect(url_for('auth'))
+    
+    user = User(username=username, email=email)
+    user.set_password(password)
+    db.session.add(user)
+    db.session.commit()
+    
+    flash('Registration successful! Please login.', 'success')
+    return redirect(url_for('auth'))
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['POST'])
 def login():
-    if current_user.is_authenticated:
+    username = request.form.get('username')
+    password = request.form.get('password')
+    
+    user = User.query.filter_by(username=username).first()
+    
+    if user and user.check_password(password):
+        login_user(user)
         return redirect(url_for('dashboard'))
-    
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        user = User.query.filter_by(username=username).first()
-        
-        if user and user.check_password(password):
-            login_user(user)
-            flash('Login successful!', 'success')
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid username or password!', 'danger')
-    
-    return render_template('login.html')
+    else:
+        flash('Invalid username or password!', 'danger')
+        return redirect(url_for('auth'))
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    courses = Course.query.filter_by(user_id=current_user.id).all()
-    return render_template('dashboard.html', courses=courses)
+    filter_status = request.args.get('status', 'all')
+    filter_priority = request.args.get('priority', 'all')
+    
+    query = Task.query.filter_by(user_id=current_user.id)
+    
+    if filter_status != 'all':
+        query = query.filter_by(status=filter_status)
+    
+    if filter_priority != 'all':
+        query = query.filter_by(priority=filter_priority)
+    
+    tasks = query.order_by(Task.created_at.desc()).all()
+    
+    # Count tasks
+    all_count = Task.query.filter_by(user_id=current_user.id).count()
+    complete_count = Task.query.filter_by(user_id=current_user.id, status='complete').count()
+    incomplete_count = Task.query.filter_by(user_id=current_user.id, status='incomplete').count()
+    
+    return render_template('dashboard.html', 
+                         tasks=tasks, 
+                         filter_status=filter_status,
+                         filter_priority=filter_priority,
+                         all_count=all_count,
+                         complete_count=complete_count,
+                         incomplete_count=incomplete_count)
 
-@app.route('/add_course', methods=['POST'])
+@app.route('/add_task', methods=['POST'])
 @login_required
-def add_course():
+def add_task():
     title = request.form.get('title')
     description = request.form.get('description')
+    priority = request.form.get('priority', 'medium')
     
-    course = Course(title=title, description=description, user_id=current_user.id)
-    db.session.add(course)
+    task = Task(title=title, description=description, priority=priority, user_id=current_user.id)
+    db.session.add(task)
     db.session.commit()
     
-    flash('Course added successfully!', 'success')
+    flash('Task added successfully!', 'success')
     return redirect(url_for('dashboard'))
 
-@app.route('/delete_course/<int:course_id>')
+@app.route('/toggle_task/<int:task_id>')
 @login_required
-def delete_course(course_id):
-    course = Course.query.get_or_404(course_id)
+def toggle_task(task_id):
+    task = Task.query.get_or_404(task_id)
     
-    if course.user_id != current_user.id:
+    if task.user_id != current_user.id:
         flash('Unauthorized action!', 'danger')
         return redirect(url_for('dashboard'))
     
-    db.session.delete(course)
+    task.status = 'complete' if task.status == 'incomplete' else 'incomplete'
     db.session.commit()
     
-    flash('Course deleted successfully!', 'success')
+    return redirect(url_for('dashboard'))
+
+@app.route('/delete_task/<int:task_id>')
+@login_required
+def delete_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    
+    if task.user_id != current_user.id:
+        flash('Unauthorized action!', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    db.session.delete(task)
+    db.session.commit()
+    
+    flash('Task deleted successfully!', 'success')
     return redirect(url_for('dashboard'))
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('index'))
-
-@app.route('/admin')
-@login_required
-def admin():
-    # Simple protection - only show if username is 'admin'
-    if current_user.username != 'admin':
-        flash('Access denied!', 'danger')
-        return redirect(url_for('dashboard'))
-    
-    users = User.query.all()
-    courses = Course.query.all()
-    return render_template('admin.html', users=users, courses=courses)
+    return redirect(url_for('auth'))
 
 if __name__ == '__main__':
     app.run(debug=True)
