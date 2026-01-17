@@ -1,16 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>StudyCloud</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyCloud - Study Management Platform</title>
     <style>
-        body { font-family: Arial; max-width: 600px; margin: 50px auto; text-align: center; }
-        .btn { padding: 15px 30px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; margin: 10px; display: inline-block; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 60px 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .emoji { font-size: 3em; margin-bottom: 20px; }
+        p {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 40px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            margin: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+        }
+        .btn-secondary:hover {
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.6);
+        }
     </style>
 </head>
 <body>
-    <h1>📚 StudyCloud</h1>
-    <p>Your Study Management Platform</p>
-    <a href="/register" class="btn">Register</a>
-    <a href="/login" class="btn">Login</a>
+    <div class="container">
+        <div class="emoji">📚</div>
+        <h1>StudyCloud</h1>
+        <p>Your Personal Study Management Platform</p>
+        <a href="/register" class="btn btn-secondary">Get Started</a>
+        <a href="/login" class="btn">Sign In</a>
+    </div>
 </body>
 </html>
