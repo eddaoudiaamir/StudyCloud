@@ -5,6 +5,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import logging
+from functools import wraps
 
 # 1. Initialize Flask App
 app = Flask(__name__)
@@ -24,11 +25,14 @@ login_manager.init_app(app)
 login_manager.login_message = "Please log in to access this page"
 login_manager.login_view = "ui"
 
-# 4. Configure Logging for User Activity
+# 4. Configure Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# 5. Database Models
+# 5. ADMIN EMAIL (ONLY THIS USER CAN ACCESS ADMIN PANEL)
+ADMIN_EMAIL = "eddaoudiaamir@gmail.com"
+
+# 6. Database Models
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(150), unique=True, nullable=False)
@@ -41,6 +45,9 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+    
+    def is_admin(self):
+        return self.email == ADMIN_EMAIL
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -51,16 +58,28 @@ class Task(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-# 6. User Loader
+# 7. User Loader
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# 7. Create Tables
+# 8. ADMIN DECORATOR (ONLY YOUR EMAIL)
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return jsonify({"error": "Authentication required"}), 401
+        if current_user.email != ADMIN_EMAIL:
+            logger.warning(f"⚠️ Unauthorized admin access attempt by {current_user.email}")
+            return jsonify({"error": "Access Denied! Only eddaoudiaamir@gmail.com can access this panel 🚫"}), 403
+        return f(*args, **kwargs)
+    return decorated_function
+
+# 9. Create Tables
 with app.app_context():
     db.create_all()
 
-# 8. Basic Routes
+# 10. Basic Routes
 @app.route("/")
 def home():
     return "StudyCloud API is running! Go to /ui to login."
@@ -69,7 +88,7 @@ def home():
 def ui():
     return render_template("index.html")
 
-# 9. Auth Routes
+# 11. Auth Routes
 @app.route("/register", methods=["POST"])
 def register():
     data = request.get_json()
@@ -96,10 +115,14 @@ def login():
     user = User.query.filter_by(email=data.get('email')).first()
     if user and user.check_password(data.get('password')):
         login_user(user)
-        logger.info(f"User logged in: {user.email} at {datetime.now()}")
-        return jsonify({"message": "Logged in", "email": user.email}), 200
+        logger.info(f"✅ User logged in: {user.email} (Admin: {user.is_admin()})")
+        return jsonify({
+            "message": "Logged in", 
+            "email": user.email,
+            "is_admin": user.is_admin()
+        }), 200
     
-    logger.warning(f"Failed login attempt for: {data.get('email')}")
+    logger.warning(f"❌ Failed login attempt for: {data.get('email')}")
     return jsonify({"error": "Invalid credentials"}), 401
 
 @app.route("/logout", methods=["POST"])
@@ -109,7 +132,7 @@ def logout():
     logout_user()
     return jsonify({"message": "Logged out"})
 
-# 10. Task Routes
+# 12. Task Routes
 @app.route("/tasks", methods=["GET"])
 @login_required
 def get_tasks():
@@ -168,7 +191,7 @@ def delete_task(task_id):
     db.session.commit()
     return jsonify({"message": "Task deleted"})
 
-# 11. USER STATS ROUTE (NEW)
+# 13. USER STATS ROUTE
 @app.route("/stats")
 @login_required
 def get_stats():
@@ -183,24 +206,35 @@ def get_stats():
         "completed": completed,
         "pending": pending,
         "high_priority": high_priority,
+        "is_admin": current_user.is_admin(),
         "member_since": current_user.created_at.strftime("%d/%m/%Y") if current_user.created_at else "N/A"
     })
 
-# 12. ADMIN ROUTE - View All Users (NEW)
+# 14. SECURE ADMIN ROUTE (ONLY eddaoudiaamir@gmail.com)
 @app.route("/admin/users")
 @login_required
+@admin_required
 def view_users():
-    # WARNING: Add admin role check in production!
+    """ONLY eddaoudiaamir@gmail.com CAN ACCESS THIS"""
     users = User.query.all()
     user_list = [{
         "id": u.id,
         "email": u.email,
+        "is_you": u.email == ADMIN_EMAIL,
         "total_tasks": Task.query.filter_by(user_id=u.id).count(),
         "registered": u.created_at.strftime("%d/%m/%Y %H:%M") if u.created_at else "N/A"
     } for u in users]
-    return jsonify({"total_users": len(user_list), "users": user_list})
+    
+    logger.info(f"🔐 Admin panel accessed by: {current_user.email}")
+    
+    return jsonify({
+        "total_users": len(user_list), 
+        "users": user_list,
+        "accessed_by": current_user.email,
+        "admin_email": ADMIN_EMAIL
+    })
 
-# 13. Health Check
+# 15. Health Check
 @app.route("/health")
 def health():
     return jsonify({
@@ -210,6 +244,6 @@ def health():
         "total_tasks": Task.query.count()
     })
 
-# 14. Run App
+# 16. Run App
 if __name__ == "__main__":
     app.run(debug=True)
