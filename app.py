@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -61,10 +61,19 @@ class Task(db.Model):
     def set_tags(self, tags_list):
         self.tags = json.dumps(tags_list)
 
-# Database setup
-with app.app_context():
-    db.create_all()
-    print('✅ Database ready!')
+# Initialize database (non-blocking)
+db_initialized = False
+
+def init_db():
+    global db_initialized
+    if not db_initialized:
+        with app.app_context():
+            try:
+                db.create_all()
+                print('✅ Database ready!')
+                db_initialized = True
+            except Exception as e:
+                print(f'Database error: {e}')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -73,15 +82,23 @@ def load_user(user_id):
     except:
         return None
 
+# Health check endpoint (REQUIRED FOR RENDER)
+@app.route('/health')
+def health():
+    return jsonify({"status": "ok"}), 200
+
 # Routes
 @app.route('/')
 def index():
+    init_db()  # Initialize on first request
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     return redirect(url_for('auth'))
 
 @app.route('/auth', methods=['GET', 'POST'])
 def auth():
+    init_db()  # Initialize on first request
+    
     if request.method == 'POST':
         action = request.form.get('action')
         
@@ -137,9 +154,7 @@ def dashboard():
     
     upcoming = Task.query.filter_by(user_id=current_user.id, status='incomplete').filter(Task.due_date.isnot(None)).order_by(Task.due_date.asc()).limit(5).all()
     
-    # Empty activity list for now
     recent_activities = []
-    
     streak = 0
     weekly_rate = (complete_count / all_count * 100) if all_count > 0 else 0
     completion_data = [0, 0, 0, 0, 0, 0, 0]
@@ -250,7 +265,6 @@ def admin():
     users = User.query.all()
     tasks = Task.query.all()
     
-    # Set default status for users
     for user in users:
         user.status = 'active'
         user.last_active = datetime.utcnow()
