@@ -33,6 +33,92 @@
             color: var(--text-primary);
             min-height: 100vh;
             transition: background 0.3s, color 0.3s;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ANIMATED BACKGROUND SHAPES */
+        .shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .shape1 {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            top: -100px;
+            left: -100px;
+            animation-duration: 25s;
+        }
+
+        .shape2 {
+            width: 350px;
+            height: 350px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            top: 50%;
+            right: -100px;
+            animation-duration: 30s;
+            animation-delay: 5s;
+        }
+
+        .shape3 {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            bottom: -100px;
+            left: 20%;
+            animation-duration: 35s;
+            animation-delay: 10s;
+        }
+
+        .shape4 {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+            top: 30%;
+            left: 50%;
+            animation-duration: 28s;
+            animation-delay: 3s;
+        }
+
+        .shape5 {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #fa709a, #fee140);
+            bottom: 20%;
+            right: 30%;
+            animation-duration: 32s;
+            animation-delay: 7s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg) scale(1);
+            }
+            25% {
+                transform: translate(100px, -100px) rotate(90deg) scale(1.1);
+            }
+            50% {
+                transform: translate(-50px, 150px) rotate(180deg) scale(0.9);
+            }
+            75% {
+                transform: translate(150px, 50px) rotate(270deg) scale(1.05);
+            }
         }
 
         .header {
@@ -43,6 +129,8 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 10px var(--shadow);
+            position: relative;
+            z-index: 10;
         }
 
         .header h1 { font-size: 1.8em; }
@@ -50,10 +138,11 @@
         .user-info {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
-        /* ANIMATED THEME TOGGLE BUTTON */
+        /* ANIMATED THEME TOGGLE */
         .theme-toggle {
             user-select: none;
             position: relative;
@@ -61,99 +150,61 @@
             color: white;
             font-weight: 600;
             font-size: 1.2em;
-            padding: 0;
+            padding: 10px 15px;
             border: 2px solid rgba(255, 255, 255, 0.3);
             cursor: pointer;
-            background: transparent;
-            transition: all 0.16s ease-out;
-        }
-
-        .theme-toggle:active {
-            scale: 0.95;
-        }
-
-        .btn-content-toggle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 15px;
-            border-radius: inherit;
-            position: relative;
-            z-index: 2;
-        }
-
-        .btn-content-toggle::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
             background: rgba(0, 0, 0, 0.2);
-            opacity: 1;
-            z-index: -1;
+            transition: all 0.16s ease-out;
         }
 
         .theme-toggle:hover {
             transform: scale(1.1);
         }
 
-        /* ANIMATED LOGOUT BUTTON */
+        .theme-toggle:active {
+            scale: 0.95;
+        }
+
+        /* ANIMATED LOGOUT */
         .logout-btn {
             user-select: none;
             position: relative;
             border-radius: 100px;
             color: white;
             font-weight: 600;
-            padding: 0;
+            padding: 10px 20px;
             border: 2px solid rgba(255, 255, 255, 0.3);
             cursor: pointer;
-            background: transparent;
+            background: rgba(0, 0, 0, 0.2);
             transition: all 0.16s ease-out;
             text-decoration: none;
             display: inline-block;
-        }
-
-        .logout-btn:active {
-            scale: 0.95;
-        }
-
-        .btn-content-logout {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 20px;
-            border-radius: inherit;
-            position: relative;
-            z-index: 2;
-        }
-
-        .btn-content-logout::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            background: rgba(0, 0, 0, 0.2);
-            opacity: 1;
-            z-index: -1;
         }
 
         .logout-btn:hover {
             background: rgba(255, 255, 255, 0.2);
         }
 
+        .logout-btn:active {
+            scale: 0.95;
+        }
+
         .container {
             max-width: 1200px;
             margin: 40px auto;
             padding: 0 20px;
+            position: relative;
+            z-index: 1;
         }
 
-        /* ANIMATED TABS */
+        /* TABS */
         .tabs {
             display: flex;
             gap: 15px;
             margin-bottom: 30px;
             flex-wrap: wrap;
             background: var(--bg-card);
-            padding: 15px;
+            padding: 20px;
             border-radius: 15px;
             box-shadow: 0 2px 10px var(--shadow);
         }
@@ -170,17 +221,22 @@
             color: var(--text-secondary);
             background: var(--bg-secondary);
             border: 2px solid transparent;
+            white-space: nowrap;
         }
 
         .tab:active {
             scale: 0.97;
         }
 
-        .tab.all { border-color: #667eea; }
+        /* Blue Tab */
+        .tab.all {
+            border-color: #667eea;
+        }
+
         .tab.all.active {
-            background: #000;
+            background: var(--bg-card);
             color: white;
-            position: relative;
+            border: none;
         }
 
         .tab.all.active::before {
@@ -193,11 +249,15 @@
             z-index: -1;
         }
 
-        .tab.incomplete { border-color: #ffc107; }
+        /* Yellow Tab */
+        .tab.incomplete {
+            border-color: #ffc107;
+        }
+
         .tab.incomplete.active {
-            background: #000;
+            background: var(--bg-card);
             color: white;
-            position: relative;
+            border: none;
         }
 
         .tab.incomplete.active::before {
@@ -210,11 +270,15 @@
             z-index: -1;
         }
 
-        .tab.complete { border-color: #28a745; }
+        /* Green Tab */
+        .tab.complete {
+            border-color: #28a745;
+        }
+
         .tab.complete.active {
-            background: #000;
+            background: var(--bg-card);
             color: white;
-            position: relative;
+            border: none;
         }
 
         .tab.complete.active::before {
@@ -236,7 +300,7 @@
             box-shadow: 0 4px 12px var(--shadow);
         }
 
-        /* ANIMATED FILTER BUTTONS */
+        /* FILTERS */
         .filter-section {
             background: var(--bg-card);
             padding: 20px;
@@ -245,13 +309,14 @@
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
+            align-items: center;
             box-shadow: 0 2px 10px var(--shadow);
         }
 
         .filter-btn {
             user-select: none;
             position: relative;
-            padding: 8px 20px;
+            padding: 10px 25px;
             border-radius: 100px;
             border: 2px solid var(--border-color);
             background: var(--bg-secondary);
@@ -260,6 +325,7 @@
             text-decoration: none;
             color: var(--text-primary);
             font-weight: 600;
+            white-space: nowrap;
         }
 
         .filter-btn:active {
@@ -267,8 +333,9 @@
         }
 
         .filter-btn.active {
-            background: #000;
+            background: var(--bg-card);
             color: white;
+            border: none;
         }
 
         .filter-btn.priority-all.active::before {
@@ -281,10 +348,15 @@
             z-index: -1;
         }
 
-        .filter-btn.priority-high { border-color: #dc3545; color: #dc3545; }
+        .filter-btn.priority-high {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
         .filter-btn.priority-high.active {
             color: white;
         }
+
         .filter-btn.priority-high.active::before {
             content: '';
             position: absolute;
@@ -295,10 +367,15 @@
             z-index: -1;
         }
 
-        .filter-btn.priority-medium { border-color: #ffc107; color: #e0a800; }
+        .filter-btn.priority-medium {
+            border-color: #ffc107;
+            color: #e0a800;
+        }
+
         .filter-btn.priority-medium.active {
             color: white;
         }
+
         .filter-btn.priority-medium.active::before {
             content: '';
             position: absolute;
@@ -309,10 +386,15 @@
             z-index: -1;
         }
 
-        .filter-btn.priority-low { border-color: #28a745; color: #28a745; }
+        .filter-btn.priority-low {
+            border-color: #28a745;
+            color: #28a745;
+        }
+
         .filter-btn.priority-low.active {
             color: white;
         }
+
         .filter-btn.priority-low.active::before {
             content: '';
             position: absolute;
@@ -366,8 +448,8 @@
             color: var(--text-primary);
             font-weight: 600;
             font-size: 1rem;
-            padding: 0;
-            border: 2px solid rgba(102, 126, 234, 0.3);
+            padding: 12px 40px;
+            border: none;
             cursor: pointer;
             background: var(--bg-card);
             transition: all 0.16s ease-out;
@@ -380,55 +462,14 @@
             scale: 0.99;
         }
 
-        .btn-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 12px 40px;
-            border-radius: inherit;
-            position: relative;
-            z-index: 2;
-        }
-
-        .btn-content::before {
+        .btn-animated::before {
             content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            background: var(--bg-card);
-            opacity: 1;
-            z-index: -1;
-        }
-
-        .btn-border {
             position: absolute;
             inset: -2px;
-            border: 2px solid transparent;
-            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0) border-box;
-            mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0) border-box;
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
             border-radius: inherit;
-        }
-
-        .btn-border::after {
-            content: '';
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(
-                from 0deg,
-                #0000 0 20%,
-                #402fb5 30%,
-                #cf30aa 70%,
-                #0000 80% 100%
-            );
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            translate: -50% -50%;
+            background: conic-gradient(from 0deg, #402fb5, #cf30aa, #402fb5);
+            animation: spin 2s linear infinite;
             z-index: -1;
-            animation: spin 2s infinite linear;
         }
 
         .task {
@@ -439,8 +480,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 20px;
             border-left: 4px solid #667eea;
             transition: all 0.3s;
+            flex-wrap: wrap;
         }
 
         .task:hover {
@@ -464,6 +507,7 @@
 
         .task-info {
             flex: 1;
+            min-width: 200px;
         }
 
         .task-title {
@@ -482,6 +526,7 @@
             display: flex;
             gap: 15px;
             font-size: 0.9em;
+            flex-wrap: wrap;
         }
 
         .priority-badge {
@@ -509,9 +554,10 @@
         .task-actions {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
-        /* ANIMATED ACTION BUTTONS */
+        /* ACTION BUTTONS */
         .btn-check, .btn-delete {
             user-select: none;
             position: relative;
@@ -521,13 +567,10 @@
             border-radius: 100px;
             font-size: 0.9em;
             font-weight: 600;
-            border: 2px solid transparent;
             transition: all 0.3s;
             display: inline-block;
-        }
-
-        .btn-check {
-            background: #000;
+            background: var(--bg-card);
+            white-space: nowrap;
         }
 
         .btn-check::before {
@@ -542,10 +585,6 @@
 
         .btn-check:active {
             scale: 0.95;
-        }
-
-        .btn-delete {
-            background: #000;
         }
 
         .btn-delete::before {
@@ -568,7 +607,10 @@
             color: var(--text-secondary);
         }
 
-        .empty-state .emoji { font-size: 4em; margin-bottom: 20px; }
+        .empty-state .emoji {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
 
         .stats {
             display: flex;
@@ -586,166 +628,4 @@
             box-shadow: 0 2px 10px var(--shadow);
         }
 
-        .stat-number {
-            font-size: 2.5em;
-            font-weight: bold;
-            background: linear-gradient(135deg, #402fb5 0%, #cf30aa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            margin-top: 5px;
-        }
-
-        .alert {
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            background: rgba(40, 167, 69, 0.2);
-            color: #28a745;
-            border-left: 4px solid #28a745;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>📚 StudyCloud Dashboard</h1>
-        <div class="user-info">
-            <button class="theme-toggle" onclick="toggleTheme()">
-                <span class="btn-content-toggle">🌓</span>
-            </button>
-            <span>Welcome, <strong>{{ current_user.username }}</strong>!</span>
-            <a href="/logout" class="logout-btn">
-                <span class="btn-content-logout">Logout</span>
-            </a>
-        </div>
-    </div>
-    
-    <div class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number">{{ all_count }}</div>
-                <div class="stat-label">Total Tasks</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ complete_count }}</div>
-                <div class="stat-label">Completed</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ incomplete_count }}</div>
-                <div class="stat-label">In Progress</div>
-            </div>
-        </div>
-
-        <!-- STATUS TABS -->
-        <div class="tabs">
-            <a href="/dashboard?status=all&priority={{ filter_priority }}" 
-               class="tab all {% if filter_status == 'all' %}active{% endif %}">
-                📋 All Tasks ({{ all_count }})
-            </a>
-            <a href="/dashboard?status=incomplete&priority={{ filter_priority }}" 
-               class="tab incomplete {% if filter_status == 'incomplete' %}active{% endif %}">
-                ⏳ In Progress ({{ incomplete_count }})
-            </a>
-            <a href="/dashboard?status=complete&priority={{ filter_priority }}" 
-               class="tab complete {% if filter_status == 'complete' %}active{% endif %}">
-                ✅ Completed ({{ complete_count }})
-            </a>
-        </div>
-
-        <!-- PRIORITY FILTERS -->
-        <div class="filter-section">
-            <strong style="color: var(--text-primary); display: flex; align-items: center;">Priority:</strong>
-            <a href="/dashboard?status={{ filter_status }}&priority=all" 
-               class="filter-btn priority-all {% if filter_priority == 'all' %}active{% endif %}">
-                All
-            </a>
-            <a href="/dashboard?status={{ filter_status }}&priority=high" 
-               class="filter-btn priority-high {% if filter_priority == 'high' %}active{% endif %}">
-                🔴 High
-            </a>
-            <a href="/dashboard?status={{ filter_status }}&priority=medium" 
-               class="filter-btn priority-medium {% if filter_priority == 'medium' %}active{% endif %}">
-                🟡 Medium
-            </a>
-            <a href="/dashboard?status={{ filter_status }}&priority=low" 
-               class="filter-btn priority-low {% if filter_priority == 'low' %}active{% endif %}">
-                🟢 Low
-            </a>
-        </div>
-        
-        <div class="card">
-            <h2>➕ Add New Task</h2>
-            <form method="POST" action="/add_task">
-                <input type="text" name="title" placeholder="Task Title" required>
-                <textarea name="description" placeholder="Task Description" rows="3"></textarea>
-                <select name="priority" required>
-                    <option value="low">🟢 Low Priority</option>
-                    <option value="medium" selected>🟡 Medium Priority</option>
-                    <option value="high">🔴 High Priority</option>
-                </select>
-                <button type="submit" class="btn-animated">
-                    <span class="btn-content">
-                        <span>✨ Add Task</span>
-                    </span>
-                    <span class="btn-border"></span>
-                </button>
-            </form>
-        </div>
-        
-        <div class="card">
-            <h2>📖 Your Tasks ({{ tasks|length }})</h2>
-            {% if tasks %}
-                {% for task in tasks %}
-                    <div class="task {% if task.status == 'complete' %}complete{% endif %} priority-{{ task.priority }}">
-                        <div class="task-info">
-                            <div class="task-title">{{ task.title }}</div>
-                            <div class="task-desc">{{ task.description or 'No description' }}</div>
-                            <div class="task-meta">
-                                <span class="priority-badge {{ task.priority }}">{{ task.priority|upper }}</span>
-                                <span style="color: var(--text-secondary);">{{ task.created_at.strftime('%b %d, %Y') }}</span>
-                            </div>
-                        </div>
-                        <div class="task-actions">
-                            <a href="/toggle_task/{{ task.id }}" class="btn-check">
-                                {% if task.status == 'complete' %}↩️ Undo{% else %}✓ Done{% endif %}
-                            </a>
-                            <a href="/delete_task/{{ task.id }}" class="btn-delete" onclick="return confirm('Delete this task?')">🗑️ Delete</a>
-                        </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <div class="empty-state">
-                    <div class="emoji">📚</div>
-                    <p>No tasks found. Add your first task above!</p>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <script>
-        // Dark/Light Mode Toggle
-        function toggleTheme() {
-            const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-        }
-
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
-</body>
-</html>
+        .s
