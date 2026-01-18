@@ -141,10 +141,13 @@ def auth():
 @login_required
 def dashboard():
     filter_status = request.args.get('status', 'all')
+    filter_priority = request.args.get('priority', 'all')
     
     query = Task.query.filter_by(user_id=current_user.id)
     if filter_status != 'all':
         query = query.filter_by(status=filter_status)
+    if filter_priority != 'all':
+        query = query.filter_by(priority=filter_priority)
     
     tasks = query.order_by(Task.created_at.desc()).all()
     
@@ -162,7 +165,7 @@ def dashboard():
     return render_template('dashboard.html', 
                          tasks=tasks, 
                          filter_status=filter_status,
-                         filter_priority='all',
+                         filter_priority=filter_priority,
                          all_count=all_count,
                          complete_count=complete_count,
                          incomplete_count=incomplete_count,
