@@ -2077,3 +2077,11 @@ RESPONSIVE IMPROVEMENTS
     }
 }
 
+/* ============================================
+DARKER THEME OVERRIDE
+============================================ */
+
+:root[data-theme="dark"] {
+    --bg-primary: #0a0e14;
+    /* ... rest of Part 1 CSS ... */
+}
