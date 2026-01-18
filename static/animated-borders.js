@@ -1,58 +1,45 @@
-// Wrap inputs and buttons with animated border layers
+// Wrap inputs and buttons with animated border wrappers
 document.addEventListener('DOMContentLoaded', function() {
     
-    // Wrap all inputs
-    const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"], .search-input, select, textarea');
+    // Wrap all form inputs
+    const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"], select, textarea');
     
     inputs.forEach(input => {
-        if (!input.closest('.input-animated-wrapper')) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'input-animated-wrapper';
-            
-            // Create border layers
-            const glow = document.createElement('div');
-            glow.className = 'glow-input';
-            
-            const darkBorder = document.createElement('div');
-            darkBorder.className = 'darkBorderBg-input';
-            
-            const border = document.createElement('div');
-            border.className = 'border-input';
-            
-            // Wrap input
-            input.parentNode.insertBefore(wrapper, input);
-            wrapper.appendChild(glow);
-            wrapper.appendChild(darkBorder);
-            wrapper.appendChild(border);
-            wrapper.appendChild(input);
+        // Skip if already wrapped
+        if (input.closest('.input-animated-wrapper')) return;
+        
+        // Skip search input in navbar (already styled differently)
+        if (input.classList.contains('search-input')) return;
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'input-animated-wrapper';
+        
+        // Get parent width if input has full width
+        const inputWidth = input.style.width || getComputedStyle(input).width;
+        if (inputWidth) {
+            wrapper.style.width = inputWidth;
         }
+        
+        // Wrap the input
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
     });
     
-    // Wrap all buttons
-    const buttons = document.querySelectorAll('.btn, .btn-primary, .btn-secondary, .btn-danger, .submit-btn, button[type="submit"]');
+    // Wrap primary buttons (not all nav buttons)
+    const buttons = document.querySelectorAll('.btn-primary, .submit-btn, button[type="submit"]');
     
     buttons.forEach(button => {
-        if (!button.closest('.btn-animated-wrapper') && !button.classList.contains('nav-btn') && !button.classList.contains('tab-btn')) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'btn-animated-wrapper';
-            wrapper.style.display = 'inline-block';
-            
-            // Create border layers
-            const glow = document.createElement('div');
-            glow.className = 'glow-btn';
-            
-            const darkBorder = document.createElement('div');
-            darkBorder.className = 'darkBorderBg-btn';
-            
-            const border = document.createElement('div');
-            border.className = 'border-btn';
-            
-            // Wrap button
-            button.parentNode.insertBefore(wrapper, button);
-            wrapper.appendChild(glow);
-            wrapper.appendChild(darkBorder);
-            wrapper.appendChild(border);
-            wrapper.appendChild(button);
-        }
+        // Skip if already wrapped
+        if (button.closest('.btn-animated-wrapper')) return;
+        
+        // Skip nav buttons and tab buttons
+        if (button.classList.contains('nav-btn') || button.classList.contains('tab-btn') || button.classList.contains('card-btn')) return;
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'btn-animated-wrapper';
+        
+        // Wrap the button
+        button.parentNode.insertBefore(wrapper, button);
+        wrapper.appendChild(button);
     });
 });
