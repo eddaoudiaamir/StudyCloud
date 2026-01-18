@@ -1599,3 +1599,481 @@ form > div[style*="grid"] input,
 form > div[style*="grid"] select {
     width: 100% !important;
 }
+/* ============================================
+DARKER THEME OVERRIDE
+============================================ */
+
+:root[data-theme="dark"] {
+    --bg-primary: #0a0e14;
+    --bg-secondary: #0d1117;
+    --glass-bg: rgba(13, 17, 23, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --text-primary: #e6edf3;
+    --text-secondary: #8b949e;
+    --text-muted: #6e7681;
+}
+
+.background {
+    background: radial-gradient(ellipse at top, #0d1117 0%, #010409 100%);
+}
+
+.orb-1 {
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+}
+
+.orb-2 {
+    background: radial-gradient(circle, rgba(236, 72, 153, 0.12) 0%, transparent 70%);
+}
+
+.orb-3 {
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+}
+
+.glass-card {
+    background: rgba(13, 17, 23, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sidebar {
+    background: rgba(13, 17, 23, 0.85);
+    border-right: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.navbar {
+    background: rgba(13, 17, 23, 0.85);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* ============================================
+QUICK ACTIONS CARD
+============================================ */
+
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.quick-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.quick-action-btn:hover {
+    transform: translateY(-3px);
+    border-color: var(--purple);
+    box-shadow: 0 8px 20px rgba(139, 92, 246, 0.2);
+}
+
+.quick-action-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 20px;
+}
+
+.quick-action-icon.purple { background: rgba(139, 92, 246, 0.15); color: var(--purple-light); }
+.quick-action-icon.pink { background: rgba(236, 72, 153, 0.15); color: var(--pink); }
+.quick-action-icon.cyan { background: rgba(34, 211, 238, 0.15); color: var(--cyan); }
+.quick-action-icon.green { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+
+/* ============================================
+UPCOMING DEADLINES WIDGET
+============================================ */
+
+.deadline-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    transition: all 0.2s;
+}
+
+.deadline-item:hover {
+    transform: translateX(5px);
+    border-color: var(--purple);
+}
+
+.deadline-indicator {
+    width: 4px;
+    height: 50px;
+    border-radius: 2px;
+}
+
+.deadline-indicator.urgent { background: var(--danger); }
+.deadline-indicator.soon { background: var(--warning); }
+.deadline-indicator.ok { background: var(--success); }
+
+.deadline-content {
+    flex: 1;
+}
+
+.deadline-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.deadline-time {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-family: 'Space Mono', monospace;
+}
+
+/* ============================================
+PRODUCTIVITY STREAK
+============================================ */
+
+.streak-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    padding: 30px;
+    text-align: center;
+}
+
+.streak-number {
+    font-size: 72px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--purple-light), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+}
+
+.streak-emoji {
+    font-size: 60px;
+    animation: flame 1s ease-in-out infinite alternate;
+}
+
+@keyframes flame {
+    0% { transform: scale(1) rotate(-5deg); }
+    100% { transform: scale(1.1) rotate(5deg); }
+}
+
+.streak-info {
+    text-align: left;
+}
+
+.streak-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+.streak-value {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ============================================
+TAGS & CATEGORIES
+============================================ */
+
+.task-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    background: rgba(139, 92, 246, 0.15);
+    color: var(--purple-light);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    margin-right: 5px;
+}
+
+.tag-input {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    min-height: 45px;
+}
+
+.tag-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background: rgba(139, 92, 246, 0.2);
+    border-radius: 15px;
+    font-size: 13px;
+}
+
+.tag-remove {
+    cursor: pointer;
+    color: var(--danger);
+    font-weight: bold;
+}
+
+/* ============================================
+ACTIVITY FEED
+============================================ */
+
+.activity-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    border-left: 2px solid var(--purple);
+    margin-bottom: 15px;
+    background: var(--glass-bg);
+    border-radius: 0 10px 10px 0;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.activity-icon.success { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+.activity-icon.info { background: rgba(59, 130, 246, 0.15); color: var(--info); }
+.activity-icon.warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-text {
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.activity-time {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* ============================================
+POMODORO TIMER
+============================================ */
+
+.pomodoro-timer {
+    text-align: center;
+    padding: 30px;
+}
+
+.timer-circle {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    border: 8px solid rgba(139, 92, 246, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: var(--glass-bg);
+}
+
+.timer-display {
+    font-size: 48px;
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    color: var(--text-primary);
+}
+
+.timer-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.timer-btn {
+    padding: 10px 20px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.timer-btn:hover {
+    border-color: var(--purple);
+    transform: translateY(-2px);
+}
+
+.timer-btn.active {
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    border-color: transparent;
+}
+
+/* ============================================
+CALENDAR HEATMAP
+============================================ */
+
+.heatmap-container {
+    padding: 20px;
+    overflow-x: auto;
+}
+
+.heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.heatmap-day {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--glass-border);
+}
+
+.heatmap-day:hover {
+    transform: scale(1.1);
+    z-index: 10;
+}
+
+.heatmap-day.level-0 { background: rgba(139, 92, 246, 0.05); }
+.heatmap-day.level-1 { background: rgba(139, 92, 246, 0.2); }
+.heatmap-day.level-2 { background: rgba(139, 92, 246, 0.4); }
+.heatmap-day.level-3 { background: rgba(139, 92, 246, 0.6); }
+.heatmap-day.level-4 { background: rgba(139, 92, 246, 0.8); }
+
+/* ============================================
+COMPLETION MINI CHART
+============================================ */
+
+.mini-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 100px;
+    padding: 20px;
+}
+
+.chart-bar {
+    flex: 1;
+    background: linear-gradient(to top, var(--purple), var(--pink));
+    border-radius: 4px 4px 0 0;
+    min-height: 10px;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+}
+
+.chart-bar:hover {
+    opacity: 0.8;
+    transform: scaleY(1.05);
+}
+
+.chart-bar::after {
+    content: attr(data-value);
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: var(--text-secondary);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.chart-bar:hover::after {
+    opacity: 1;
+}
+
+/* ============================================
+USER STATUS BADGES (ADMIN)
+============================================ */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge.active {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+}
+
+.status-badge.away {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning);
+}
+
+.status-badge.offline {
+    background: rgba(107, 114, 128, 0.15);
+    color: var(--text-muted);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.status-dot.active { background: var(--success); }
+.status-dot.away { background: var(--warning); }
+.status-dot.offline { background: var(--text-muted); animation: none; }
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ============================================
+RESPONSIVE IMPROVEMENTS
+============================================ */
+
+@media (max-width: 768px) {
+    .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .streak-display {
+        flex-direction: column;
+    }
+    
+    .heatmap-grid {
+        grid-template-columns: repeat(7, 40px);
+    }
+}
+
