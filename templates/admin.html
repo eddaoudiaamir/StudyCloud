@@ -68,6 +68,14 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a href="{{ url_for('analytics') }}" class="nav-link">
+                                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                    Analytics
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a href="{{ url_for('logout') }}" class="nav-link">
                                     <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
@@ -134,7 +142,7 @@
 
             <!-- Admin Stats Cards -->
             <div class="stats-grid">
-                <div class="glass-card glass-card-3d stat-card">
+                <div class="glass-card stat-card">
                     <div class="stat-card-inner">
                         <div class="stat-info">
                             <h3>Total Users</h3>
@@ -148,7 +156,7 @@
                     </div>
                 </div>
 
-                <div class="glass-card glass-card-3d stat-card">
+                <div class="glass-card stat-card">
                     <div class="stat-card-inner">
                         <div class="stat-info">
                             <h3>Total Tasks</h3>
@@ -162,7 +170,7 @@
                     </div>
                 </div>
 
-                <div class="glass-card glass-card-3d stat-card">
+                <div class="glass-card stat-card">
                     <div class="stat-card-inner">
                         <div class="stat-info">
                             <h3>Completed</h3>
@@ -182,7 +190,7 @@
                     </div>
                 </div>
 
-                <div class="glass-card glass-card-3d stat-card">
+                <div class="glass-card stat-card">
                     <div class="stat-card-inner">
                         <div class="stat-info">
                             <h3>Completion Rate</h3>
@@ -198,7 +206,7 @@
             </div>
 
             <!-- Users Table -->
-            <div class="glass-card glass-card-3d table-card" style="margin-bottom: 30px;">
+            <div class="glass-card table-card" style="margin-bottom: 30px;">
                 <div class="card-header">
                     <div>
                         <h2 class="card-title">👥 All Users</h2>
@@ -251,7 +259,7 @@
             </div>
 
             <!-- All Tasks Table -->
-            <div class="glass-card glass-card-3d table-card">
+            <div class="glass-card table-card">
                 <div class="card-header">
                     <div>
                         <h2 class="card-title">📚 All Tasks</h2>
@@ -268,6 +276,7 @@
                                 <th>Owner</th>
                                 <th>Priority</th>
                                 <th>Status</th>
+                                <th>Due Date</th>
                                 <th>Created</th>
                             </tr>
                         </thead>
@@ -296,6 +305,13 @@
                                         {{ task.status|upper }}
                                     </span>
                                 </td>
+                                <td>
+                                    {% if task.due_date %}
+                                        {{ task.due_date.strftime('%b %d, %Y') }}
+                                    {% else %}
+                                        <span style="color: var(--text-muted);">-</span>
+                                    {% endif %}
+                                </td>
                                 <td>{{ task.created_at.strftime('%b %d, %Y') }}</td>
                             </tr>
                             {% endfor %}
@@ -307,6 +323,6 @@
     </div>
 
     <script src="{{ url_for('static', filename='templatemo-glass-admin-script.js') }}"></script>
-    <script src="{{ url_for('static', filename='animated-borders.js') }}"></script>  
+    <script src="{{ url_for('static', filename='animated-borders.js') }}"></script>
 </body>
 </html>
