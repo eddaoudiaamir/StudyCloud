@@ -1,14 +1,15 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from datetime import datetime
+from sqlalchemy import inspect
 
 app = Flask(__name__)
 
 # Configuration
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///studycloud.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -43,21 +44,38 @@ class Task(db.Model):
     description = db.Column(db.Text)
     status = db.Column(db.String(20), default='incomplete')
     priority = db.Column(db.String(20), default='medium')
+    due_date = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
-# Create database tables
+# Database setup with migration
 with app.app_context():
-    db.create_all()
+    # Check if due_date column exists
+    inspector = inspect(db.engine)
+    columns = [column['name'] for column in inspector.get_columns('tasks')]
+    
+    if 'due_date' not in columns:
+        print('⚠️  Migrating database: Adding due_date column...')
+        # Add the due_date column if it doesn't exist
+        with db.engine.connect() as conn:
+            try:
+                conn.execute(db.text('ALTER TABLE tasks ADD COLUMN due_date TIMESTAMP'))
+                conn.commit()
+                print('✅ Database migration successful!')
+            except Exception as e:
+                print(f'❌ Migration error: {e}')
+                print('Creating fresh tables...')
+                db.create_all()
+    else:
+        db.create_all()
+        print('✅ Database tables ready!')
 
 @login_manager.user_loader
 def load_user(user_id):
-    return db.session.get(User, int(user_id))
-
-# Health check for Render
-@app.route('/health')
-def health():
-    return jsonify({"status": "ok"}), 200
+    try:
+        return db.session.get(User, int(user_id))
+    except:
+        return None
 
 # Routes
 @app.route('/')
@@ -66,45 +84,47 @@ def index():
         return redirect(url_for('dashboard'))
     return redirect(url_for('auth'))
 
-@app.route('/auth', methods=['GET', 'POST'])
+@app.route('/auth')
 def auth():
-    if request.method == 'POST':
-        action = request.form.get('action')
-        
-        if action == 'register':
-            username = request.form.get('username')
-            email = request.form.get('email')
-            password = request.form.get('password')
-            
-            if User.query.filter_by(username=username).first():
-                flash('Username already exists!', 'danger')
-                return redirect(url_for('auth'))
-            
-            user = User(username=username, email=email)
-            user.set_password(password)
-            db.session.add(user)
-            db.session.commit()
-            
-            flash('Registration successful! Please login.', 'success')
-            return redirect(url_for('auth'))
-        
-        else:  # login
-            username = request.form.get('username')
-            password = request.form.get('password')
-            
-            user = User.query.filter_by(username=username).first()
-            
-            if user and user.check_password(password):
-                login_user(user)
-                return redirect(url_for('dashboard'))
-            else:
-                flash('Invalid username or password!', 'danger')
-                return redirect(url_for('auth'))
-    
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
-    
     return render_template('auth.html')
+
+@app.route('/register', methods=['POST'])
+def register():
+    username = request.form.get('username')
+    email = request.form.get('email')
+    password = request.form.get('password')
+    
+    if User.query.filter_by(username=username).first():
+        flash('Username already exists!', 'danger')
+        return redirect(url_for('auth'))
+    
+    if User.query.filter_by(email=email).first():
+        flash('Email already registered!', 'danger')
+        return redirect(url_for('auth'))
+    
+    user = User(username=username, email=email)
+    user.set_password(password)
+    db.session.add(user)
+    db.session.commit()
+    
+    flash('Registration successful! Please login.', 'success')
+    return redirect(url_for('auth'))
+
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.form.get('username')
+    password = request.form.get('password')
+    
+    user = User.query.filter_by(username=username).first()
+    
+    if user and user.check_password(password):
+        login_user(user)
+        return redirect(url_for('dashboard'))
+    else:
+        flash('Invalid username or password!', 'danger')
+        return redirect(url_for('auth'))
 
 @app.route('/dashboard')
 @login_required
@@ -122,29 +142,18 @@ def dashboard():
     
     tasks = query.order_by(Task.created_at.desc()).all()
     
+    # Count tasks
     all_count = Task.query.filter_by(user_id=current_user.id).count()
     complete_count = Task.query.filter_by(user_id=current_user.id, status='complete').count()
     incomplete_count = Task.query.filter_by(user_id=current_user.id, status='incomplete').count()
     
-    # Add missing variables
-    upcoming = []
-    recent_activities = []
-    streak = 0
-    weekly_rate = (complete_count / all_count * 100) if all_count > 0 else 0
-    completion_data = [0, 0, 0, 0, 0, 0, 0]
-    
     return render_template('dashboard.html', 
-                         tasks=tasks,
+                         tasks=tasks, 
                          filter_status=filter_status,
                          filter_priority=filter_priority,
                          all_count=all_count,
                          complete_count=complete_count,
-                         incomplete_count=incomplete_count,
-                         upcoming=upcoming,
-                         recent_activities=recent_activities,
-                         streak=streak,
-                         weekly_rate=weekly_rate,
-                         completion_data=completion_data)
+                         incomplete_count=incomplete_count)
 
 @app.route('/add_task', methods=['POST'])
 @login_required
@@ -152,8 +161,17 @@ def add_task():
     title = request.form.get('title')
     description = request.form.get('description')
     priority = request.form.get('priority', 'medium')
+    due_date_str = request.form.get('due_date')
     
-    task = Task(title=title, description=description, priority=priority, user_id=current_user.id)
+    # Parse due date
+    due_date = None
+    if due_date_str:
+        try:
+            due_date = datetime.strptime(due_date_str, '%Y-%m-%d')
+        except:
+            pass
+    
+    task = Task(title=title, description=description, priority=priority, due_date=due_date, user_id=current_user.id)
     db.session.add(task)
     db.session.commit()
     
@@ -192,15 +210,22 @@ def delete_task(task_id):
 @app.route('/analytics')
 @login_required
 def analytics():
+    # Get all user tasks
     tasks = Task.query.filter_by(user_id=current_user.id).all()
     
+    # Calculate statistics
     total_tasks = len(tasks)
     completed = len([t for t in tasks if t.status == 'complete'])
     incomplete = len([t for t in tasks if t.status == 'incomplete'])
     
+    # Priority breakdown
     high_priority = len([t for t in tasks if t.priority == 'high'])
     medium_priority = len([t for t in tasks if t.priority == 'medium'])
     low_priority = len([t for t in tasks if t.priority == 'low'])
+    
+    # Overdue tasks
+    now = datetime.utcnow()
+    overdue = len([t for t in tasks if t.due_date and t.due_date < now and t.status == 'incomplete'])
     
     return render_template('analytics.html',
                          total_tasks=total_tasks,
@@ -208,7 +233,9 @@ def analytics():
                          incomplete=incomplete,
                          high_priority=high_priority,
                          medium_priority=medium_priority,
-                         low_priority=low_priority)
+                         low_priority=low_priority,
+                         overdue=overdue,
+                         tasks=tasks)
 
 @app.route('/admin')
 @login_required
@@ -239,4 +266,3 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
