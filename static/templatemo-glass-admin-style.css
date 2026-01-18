@@ -1568,3 +1568,34 @@ textarea {
     position: relative;
     z-index: 10;
 }
+/* ============================================
+FIX INPUT WIDTH FOR ANIMATED BORDERS
+============================================ */
+
+/* Make input wrappers properly sized */
+.input-animated-wrapper {
+    min-width: 200px;
+    width: 100%;
+}
+
+/* Ensure form inputs take full width */
+form input[type="text"],
+form input[type="email"],
+form input[type="password"],
+form input[type="date"],
+form select,
+form textarea {
+    width: 100% !important;
+    min-width: 0;
+}
+
+/* Auth page inputs */
+.form-input {
+    width: 100% !important;
+}
+
+/* Make sure grid inputs expand properly */
+form > div[style*="grid"] input,
+form > div[style*="grid"] select {
+    width: 100% !important;
+}
