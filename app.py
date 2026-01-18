@@ -30,7 +30,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
-    status = db.Column(db.String(20), default='active')  # active, away, offline
+    status = db.Column(db.String(20), default='active')
     last_active = db.Column(db.DateTime, default=datetime.utcnow)
     tasks = db.relationship('Task', backref='owner', lazy=True, cascade='all, delete-orphan')
     activities = db.relationship('Activity', backref='user', lazy=True, cascade='all, delete-orphan')
@@ -43,7 +43,6 @@ class User(UserMixin, db.Model):
     
     def update_last_active(self):
         self.last_active = datetime.utcnow()
-        # Auto-update status based on last activity
         time_diff = datetime.utcnow() - self.last_active
         if time_diff < timedelta(minutes=5):
             self.status = 'active'
@@ -60,9 +59,9 @@ class Task(db.Model):
     description = db.Column(db.Text)
     status = db.Column(db.String(20), default='incomplete')
     priority = db.Column(db.String(20), default='medium')
-    tags = db.Column(db.Text)  # JSON string of tags
+    tags = db.Column(db.Text)
     due_date = db.Column(db.DateTime, nullable=True)
-    time_spent = db.Column(db.Integer, default=0)  # minutes
+    time_spent = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     completed_at = db.Column(db.DateTime, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -83,68 +82,73 @@ class Activity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     action = db.Column(db.String(200), nullable=False)
     task_title = db.Column(db.String(200))
-    icon_type = db.Column(db.String(20), default='info')  # success, info, warning
+    icon_type = db.Column(db.String(20), default='info')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
-# Database setup with migration
+# Database setup
 with app.app_context():
-    inspector = inspect(db.engine)
-    
-    # Check and add missing columns
-    if 'tasks' in inspector.get_table_names():
-        columns = [column['name'] for column in inspector.get_columns('tasks')]
+    try:
+        # Create all tables first
+        db.create_all()
+        print('✅ All tables created!')
         
-        with db.engine.connect() as conn:
-            if 'due_date' not in columns:
-                try:
-                    conn.execute(text('ALTER TABLE tasks ADD COLUMN due_date TIMESTAMP'))
-                    conn.commit()
-                    print('✅ Added due_date column')
-                except: pass
-            
-            if 'tags' not in columns:
-                try:
-                    conn.execute(text('ALTER TABLE tasks ADD COLUMN tags TEXT'))
-                    conn.commit()
-                    print('✅ Added tags column')
-                except: pass
-            
-            if 'time_spent' not in columns:
-                try:
-                    conn.execute(text('ALTER TABLE tasks ADD COLUMN time_spent INTEGER DEFAULT 0'))
-                    conn.commit()
-                    print('✅ Added time_spent column')
-                except: pass
-            
-            if 'completed_at' not in columns:
-                try:
-                    conn.execute(text('ALTER TABLE tasks ADD COLUMN completed_at TIMESTAMP'))
-                    conn.commit()
-                    print('✅ Added completed_at column')
-                except: pass
-    
-    if 'users' in inspector.get_table_names():
-        columns = [column['name'] for column in inspector.get_columns('users')]
+        # Then add missing columns if needed
+        inspector = inspect(db.engine)
         
-        with db.engine.connect() as conn:
-            if 'status' not in columns:
-                try:
-                    conn.execute(text("ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'active'"))
-                    conn.commit()
-                    print('✅ Added status column')
-                except: pass
+        if 'tasks' in inspector.get_table_names():
+            columns = [column['name'] for column in inspector.get_columns('tasks')]
             
-            if 'last_active' not in columns:
-                try:
-                    conn.execute(text('ALTER TABLE users ADD COLUMN last_active TIMESTAMP'))
-                    conn.commit()
-                    print('✅ Added last_active column')
-                except: pass
-    
-    # Create all tables
-    db.create_all()
-    print('✅ Database ready!')
+            with db.engine.connect() as conn:
+                if 'due_date' not in columns:
+                    try:
+                        conn.execute(text('ALTER TABLE tasks ADD COLUMN due_date TIMESTAMP'))
+                        conn.commit()
+                        print('✅ Added due_date')
+                    except: pass
+                
+                if 'tags' not in columns:
+                    try:
+                        conn.execute(text('ALTER TABLE tasks ADD COLUMN tags TEXT'))
+                        conn.commit()
+                        print('✅ Added tags')
+                    except: pass
+                
+                if 'time_spent' not in columns:
+                    try:
+                        conn.execute(text('ALTER TABLE tasks ADD COLUMN time_spent INTEGER DEFAULT 0'))
+                        conn.commit()
+                        print('✅ Added time_spent')
+                    except: pass
+                
+                if 'completed_at' not in columns:
+                    try:
+                        conn.execute(text('ALTER TABLE tasks ADD COLUMN completed_at TIMESTAMP'))
+                        conn.commit()
+                        print('✅ Added completed_at')
+                    except: pass
+        
+        if 'users' in inspector.get_table_names():
+            columns = [column['name'] for column in inspector.get_columns('users')]
+            
+            with db.engine.connect() as conn:
+                if 'status' not in columns:
+                    try:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'active'"))
+                        conn.commit()
+                        print('✅ Added status')
+                    except: pass
+                
+                if 'last_active' not in columns:
+                    try:
+                        conn.execute(text('ALTER TABLE users ADD COLUMN last_active TIMESTAMP'))
+                        conn.commit()
+                        print('✅ Added last_active')
+                    except: pass
+        
+        print('✅ Database ready!')
+    except Exception as e:
+        print(f'❌ Database error: {e}')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -157,43 +161,47 @@ def load_user(user_id):
         return None
 
 def log_activity(action, task_title=None, icon_type='info'):
-    """Helper function to log user activities"""
-    if current_user.is_authenticated:
-        activity = Activity(
-            action=action,
-            task_title=task_title,
-            icon_type=icon_type,
-            user_id=current_user.id
-        )
-        db.session.add(activity)
-        db.session.commit()
+    try:
+        if current_user.is_authenticated:
+            activity = Activity(
+                action=action,
+                task_title=task_title,
+                icon_type=icon_type,
+                user_id=current_user.id
+            )
+            db.session.add(activity)
+            db.session.commit()
+    except:
+        pass
 
 def calculate_streak():
-    """Calculate consecutive days with completed tasks"""
-    if not current_user.is_authenticated:
+    try:
+        if not current_user.is_authenticated:
+            return 0
+        
+        completed_tasks = Task.query.filter_by(
+            user_id=current_user.id, 
+            status='complete'
+        ).order_by(Task.completed_at.desc()).all()
+        
+        if not completed_tasks:
+            return 0
+        
+        streak = 0
+        current_date = datetime.utcnow().date()
+        
+        for task in completed_tasks:
+            if task.completed_at:
+                task_date = task.completed_at.date()
+                if task_date == current_date or task_date == current_date - timedelta(days=1):
+                    current_date = task_date
+                    streak = (datetime.utcnow().date() - task_date).days + 1
+                else:
+                    break
+        
+        return streak if streak > 0 else 0
+    except:
         return 0
-    
-    completed_tasks = Task.query.filter_by(
-        user_id=current_user.id, 
-        status='complete'
-    ).order_by(Task.completed_at.desc()).all()
-    
-    if not completed_tasks:
-        return 0
-    
-    streak = 0
-    current_date = datetime.utcnow().date()
-    
-    for task in completed_tasks:
-        if task.completed_at:
-            task_date = task.completed_at.date()
-            if task_date == current_date or task_date == current_date - timedelta(days=1):
-                current_date = task_date
-                streak = (datetime.utcnow().date() - task_date).days + 1
-            else:
-                break
-    
-    return streak if streak > 0 else 0
 
 # Routes
 @app.route('/')
@@ -249,71 +257,70 @@ def login():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    filter_status = request.args.get('status', 'all')
-    filter_priority = request.args.get('priority', 'all')
-    
-    query = Task.query.filter_by(user_id=current_user.id)
-    
-    if filter_status != 'all':
-        query = query.filter_by(status=filter_status)
-    
-    if filter_priority != 'all':
-        query = query.filter_by(priority=filter_priority)
-    
-    tasks = query.order_by(Task.due_date.asc().nullslast()).all()
-    
-    # Count tasks
-    all_count = Task.query.filter_by(user_id=current_user.id).count()
-    complete_count = Task.query.filter_by(user_id=current_user.id, status='complete').count()
-    incomplete_count = Task.query.filter_by(user_id=current_user.id, status='incomplete').count()
-    
-    # Get upcoming deadlines (next 5 tasks with due dates)
-    upcoming = Task.query.filter_by(
-        user_id=current_user.id, 
-        status='incomplete'
-    ).filter(Task.due_date.isnot(None)).order_by(Task.due_date.asc()).limit(5).all()
-    
-    # Get recent activities
-    recent_activities = Activity.query.filter_by(
-        user_id=current_user.id
-    ).order_by(Activity.created_at.desc()).limit(5).all()
-    
-    # Calculate streak
-    streak = calculate_streak()
-    
-    # Weekly completion rate
-    week_ago = datetime.utcnow() - timedelta(days=7)
-    week_completed = Task.query.filter_by(
-        user_id=current_user.id, 
-        status='complete'
-    ).filter(Task.completed_at >= week_ago).count()
-    week_total = Task.query.filter_by(user_id=current_user.id).filter(Task.created_at >= week_ago).count()
-    weekly_rate = (week_completed / week_total * 100) if week_total > 0 else 0
-    
-    # Last 7 days completion data
-    completion_data = []
-    for i in range(6, -1, -1):
-        date = datetime.utcnow() - timedelta(days=i)
-        day_start = date.replace(hour=0, minute=0, second=0, microsecond=0)
-        day_end = date.replace(hour=23, minute=59, second=59)
-        count = Task.query.filter_by(
-            user_id=current_user.id,
+    try:
+        filter_status = request.args.get('status', 'all')
+        filter_priority = request.args.get('priority', 'all')
+        
+        query = Task.query.filter_by(user_id=current_user.id)
+        
+        if filter_status != 'all':
+            query = query.filter_by(status=filter_status)
+        
+        if filter_priority != 'all':
+            query = query.filter_by(priority=filter_priority)
+        
+        tasks = query.order_by(Task.due_date.asc().nullslast()).all()
+        
+        all_count = Task.query.filter_by(user_id=current_user.id).count()
+        complete_count = Task.query.filter_by(user_id=current_user.id, status='complete').count()
+        incomplete_count = Task.query.filter_by(user_id=current_user.id, status='incomplete').count()
+        
+        upcoming = Task.query.filter_by(
+            user_id=current_user.id, 
+            status='incomplete'
+        ).filter(Task.due_date.isnot(None)).order_by(Task.due_date.asc()).limit(5).all()
+        
+        recent_activities = Activity.query.filter_by(
+            user_id=current_user.id
+        ).order_by(Activity.created_at.desc()).limit(5).all()
+        
+        streak = calculate_streak()
+        
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        week_completed = Task.query.filter_by(
+            user_id=current_user.id, 
             status='complete'
-        ).filter(Task.completed_at >= day_start, Task.completed_at <= day_end).count()
-        completion_data.append(count)
-    
-    return render_template('dashboard.html', 
-                         tasks=tasks, 
-                         filter_status=filter_status,
-                         filter_priority=filter_priority,
-                         all_count=all_count,
-                         complete_count=complete_count,
-                         incomplete_count=incomplete_count,
-                         upcoming=upcoming,
-                         recent_activities=recent_activities,
-                         streak=streak,
-                         weekly_rate=weekly_rate,
-                         completion_data=completion_data)
+        ).filter(Task.completed_at >= week_ago).count()
+        week_total = Task.query.filter_by(user_id=current_user.id).filter(Task.created_at >= week_ago).count()
+        weekly_rate = (week_completed / week_total * 100) if week_total > 0 else 0
+        
+        completion_data = []
+        for i in range(6, -1, -1):
+            date = datetime.utcnow() - timedelta(days=i)
+            day_start = date.replace(hour=0, minute=0, second=0, microsecond=0)
+            day_end = date.replace(hour=23, minute=59, second=59)
+            count = Task.query.filter_by(
+                user_id=current_user.id,
+                status='complete'
+            ).filter(Task.completed_at >= day_start, Task.completed_at <= day_end).count()
+            completion_data.append(count)
+        
+        return render_template('dashboard.html', 
+                             tasks=tasks, 
+                             filter_status=filter_status,
+                             filter_priority=filter_priority,
+                             all_count=all_count,
+                             complete_count=complete_count,
+                             incomplete_count=incomplete_count,
+                             upcoming=upcoming,
+                             recent_activities=recent_activities,
+                             streak=streak,
+                             weekly_rate=weekly_rate,
+                             completion_data=completion_data)
+    except Exception as e:
+        print(f"Dashboard error: {e}")
+        flash('Error loading dashboard. Please try again.', 'danger')
+        return redirect(url_for('auth'))
 
 @app.route('/add_task', methods=['POST'])
 @login_required
@@ -324,7 +331,6 @@ def add_task():
     due_date_str = request.form.get('due_date')
     tags_str = request.form.get('tags', '')
     
-    # Parse due date
     due_date = None
     if due_date_str:
         try:
@@ -332,7 +338,6 @@ def add_task():
         except:
             pass
     
-    # Parse tags
     tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
     
     task = Task(title=title, description=description, priority=priority, due_date=due_date, user_id=current_user.id)
@@ -419,7 +424,6 @@ def admin():
     users = User.query.all()
     tasks = Task.query.all()
     
-    # Update user statuses based on last active
     for user in users:
         if user.last_active:
             time_diff = datetime.utcnow() - user.last_active
