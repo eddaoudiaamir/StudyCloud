@@ -75,6 +75,8 @@ class Task(db.Model):
 
 # ==================== DATABASE SETUP ====================
 
+# ==================== DATABASE SETUP ====================
+
 with app.app_context():
     try:
         inspector = inspect(db.engine)
@@ -92,16 +94,17 @@ with app.app_context():
             user_columns = [column['name'] for column in inspector.get_columns('users')]
             if 'points' not in user_columns:
                 with db.engine.connect() as conn:
-                    conn.execute(db.text('ALTER TABLE users ADD COLUMN points INTEGER DEFAULT 0'))
-                    conn.execute(db.text('ALTER TABLE users ADD COLUMN level INTEGER DEFAULT 1'))
-                    conn.execute(db.text('ALTER TABLE users ADD COLUMN badges VARCHAR(500) DEFAULT ""'))
+                    # FIX: Use single quotes for PostgreSQL
+                    conn.execute(db.text("ALTER TABLE users ADD COLUMN points INTEGER DEFAULT 0"))
+                    conn.execute(db.text("ALTER TABLE users ADD COLUMN level INTEGER DEFAULT 1"))
+                    conn.execute(db.text("ALTER TABLE users ADD COLUMN badges VARCHAR(500) DEFAULT ''"))
                     conn.commit()
                     print('✅ Gamification columns added!')
         
         db.create_all()
         print('✅ Database tables ready!')
     except Exception as e:
-        print(f'Database setup: {e}')
+        print(f'Database setup error: {e}')
         db.create_all()
 
 # ==================== LOGIN MANAGER ====================
@@ -336,3 +339,4 @@ def health():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
