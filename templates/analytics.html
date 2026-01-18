@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - StudyCloud</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='templatemo-glass-admin-style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="background"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">SC</div>
+                <div class="logo-text">StudyCloud</div>
+            </div>
+
+            <nav class="nav-menu">
+                <ul>
+                    <li class="nav-section">
+                        <div class="nav-section-title">Main</div>
+                        <ul>
+                            <li class="nav-item">
+                                <a href="{{ url_for('dashboard') }}" class="nav-link">
+                                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                    </svg>
+                                    Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ url_for('analytics') }}" class="nav-link active">
+                                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                    Analytics
+                                </a>
+                            </li>
+                            {% if current_user.username == 'admin' %}
+                            <li class="nav-item">
+                                <a href="{{ url_for('admin') }}" class="nav-link">
+                                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                    </svg>
+                                    Admin Panel
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">{{ current_user.username[0]|upper }}</div>
+                    <div class="user-info">
+                        <div class="user-name">{{ current_user.username }}</div>
+                        <div class="user-role">{{ current_user.email }}</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Navbar -->
+            <nav class="navbar">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button class="nav-btn mobile-menu-toggle" style="display: none;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    <h1 class="page-title">📊 Analytics</h1>
+                </div>
+                
+                <div class="navbar-right">
+                    <button class="nav-btn" id="theme-toggle">
+                        <svg class="icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: block;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <svg class="icon-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                        </svg>
+                    </button>
+                    <a href="{{ url_for('logout') }}" class="nav-btn" title="Logout">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="glass-card stat-card">
+                    <div class="stat-card-inner">
+                        <div class="stat-info">
+                            <h3>Total Tasks</h3>
+                            <div class="stat-value">{{ total_tasks }}</div>
+                        </div>
+                        <div class="stat-icon cyan">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card stat-card">
+                    <div class="stat-card-inner">
+                        <div class="stat-info">
+                            <h3>Completed</h3>
+                            <div class="stat-value">{{ completed }}</div>
+                            <span class="stat-change positive">
+                                {% if total_tasks > 0 %}{{ ((completed / total_tasks) * 100)|round|int }}%{% else %}0%{% endif %}
+                            </span>
+                        </div>
+                        <div class="stat-icon success">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card stat-card">
+                    <div class="stat-card-inner">
+                        <div class="stat-info">
+                            <h3>Pending</h3>
+                            <div class="stat-value">{{ incomplete }}</div>
+                            <span class="stat-change negative">
+                                {% if total_tasks > 0 %}{{ ((incomplete / total_tasks) * 100)|round|int }}%{% else %}0%{% endif %}
+                            </span>
+                        </div>
+                        <div class="stat-icon magenta">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card stat-card">
+                    <div class="stat-card-inner">
+                        <div class="stat-info">
+                            <h3>Overdue</h3>
+                            <div class="stat-value">{{ overdue }}</div>
+                            <span class="stat-change negative">
+                                ⚠️ Late
+                            </span>
+                        </div>
+                        <div class="stat-icon purple">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="content-grid">
+                <!-- Task Status Donut Chart -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">Task Completion</h2>
+                            <p class="card-subtitle">Overall progress</p>
+                        </div>
+                    </div>
+                    <div class="donut-container">
+                        <div class="donut-chart">
+                            <svg width="140" height="140" viewBox="0 0 140 140">
+                                <circle cx="70" cy="70" r="50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="20"></circle>
+                                {% set completion_percent = (completed / total_tasks * 100) if total_tasks > 0 else 0 %}
+                                <circle cx="70" cy="70" r="50" fill="none" 
+                                        stroke="url(#gradient1)" 
+                                        stroke-width="20" 
+                                        stroke-dasharray="{{ (completion_percent / 100 * 314)|round(2) }} 314"
+                                        stroke-linecap="round"
+                                        transform="rotate(-90 70 70)"></circle>
+                                <defs>
+                                    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                                <text x="70" y="70" text-anchor="middle" dy="0.3em" fill="var(--text-primary)" font-size="24" font-weight="700" font-family="'Space Mono', monospace">{{ completion_percent|round|int }}%</text>
+                            </svg>
+                        </div>
+                        <div class="donut-legend">
+                            <div class="legend-item">
+                                <div class="legend-label">
+                                    <div class="legend-dot" style="background: linear-gradient(135deg, #8b5cf6, #ec4899);"></div>
+                                    <span>Completed</span>
+                                </div>
+                                <div class="legend-value">{{ completed }}</div>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-label">
+                                    <div class="legend-dot" style="background: rgba(255,255,255,0.1);"></div>
+                                    <span>Pending</span>
+                                </div>
+                                <div class="legend-value">{{ incomplete }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Priority Distribution -->
+                <div class="glass-card progress-card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">Priority Distribution</h2>
+                            <p class="card-subtitle">Task breakdown by priority</p>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <div class="progress-label">🔴 High Priority</div>
+                            <div class="progress-value">{{ high_priority }}</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill warning" style="width: {% if total_tasks > 0 %}{{ (high_priority / total_tasks * 100)|round }}%{% else %}0%{% endif %}"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <div class="progress-label">🟡 Medium Priority</div>
+                            <div class="progress-value">{{ medium_priority }}</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill pink" style="width: {% if total_tasks > 0 %}{{ (medium_priority / total_tasks * 100)|round }}%{% else %}0%{% endif %}"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <div class="progress-label">🟢 Low Priority</div>
+                            <div class="progress-value">{{ low_priority }}</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill success" style="width: {% if total_tasks > 0 %}{{ (low_priority / total_tasks * 100)|round }}%{% else %}0%{% endif %}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">📈 Performance Insights</h2>
+                        <p class="card-subtitle">Your productivity metrics</p>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 20px;">
+                    <div style="text-align: center; padding: 20px; background: var(--glass-bg); border-radius: 12px; border: 1px solid var(--glass-border);">
+                        <div style="font-size: 36px; font-weight: 700; background: linear-gradient(135deg, var(--purple-light), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                            {% if total_tasks > 0 %}{{ ((completed / total_tasks) * 100)|round|int }}%{% else %}0%{% endif %}
+                        </div>
+                        <div style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">Completion Rate</div>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: var(--glass-bg); border-radius: 12px; border: 1px solid var(--glass-border);">
+                        <div style="font-size: 36px; font-weight: 700; background: linear-gradient(135deg, var(--purple-light), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                            {{ total_tasks }}
+                        </div>
+                        <div style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">Total Created</div>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: var(--glass-bg); border-radius: 12px; border: 1px solid var(--glass-border);">
+                        <div style="font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #22c55e, #16a34a); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                            {{ completed }}
+                        </div>
+                        <div style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">Tasks Done</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='templatemo-glass-admin-script.js') }}"></script>
+    <script src="{{ url_for('static', filename='animated-borders.js') }}"></script>
+</body>
+</html>
