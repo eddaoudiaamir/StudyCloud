@@ -90,14 +90,14 @@ def health():
 # Routes
 @app.route('/')
 def index():
-    init_db()  # Initialize on first request
+    init_db()
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     return redirect(url_for('auth'))
 
 @app.route('/auth', methods=['GET', 'POST'])
 def auth():
-    init_db()  # Initialize on first request
+    init_db()
     
     if request.method == 'POST':
         action = request.form.get('action')
@@ -170,7 +170,8 @@ def dashboard():
                          recent_activities=recent_activities,
                          streak=streak,
                          weekly_rate=weekly_rate,
-                         completion_data=completion_data)
+                         completion_data=completion_data,
+                         now=datetime.utcnow())
 
 @app.route('/add_task', methods=['POST'])
 @login_required
