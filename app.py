@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -10,7 +10,7 @@ import json
 app = Flask(__name__)
 
 # Configuration
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-12345678')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///studycloud.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -21,7 +21,7 @@ if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
 # Initialize extensions
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
-login_manager.login_view = 'auth'
+login_manager.login_view = 'login_page'
 
 # Models
 class User(UserMixin, db.Model):
@@ -43,14 +43,10 @@ class User(UserMixin, db.Model):
     
     def update_last_active(self):
         self.last_active = datetime.utcnow()
-        time_diff = datetime.utcnow() - self.last_active
-        if time_diff < timedelta(minutes=5):
-            self.status = 'active'
-        elif time_diff < timedelta(hours=1):
-            self.status = 'away'
-        else:
-            self.status = 'offline'
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
 
 class Task(db.Model):
     __tablename__ = 'tasks'
@@ -89,11 +85,9 @@ class Activity(db.Model):
 # Database setup
 with app.app_context():
     try:
-        # Create all tables first
         db.create_all()
         print('✅ All tables created!')
         
-        # Then add missing columns if needed
         inspector = inspect(db.engine)
         
         if 'tasks' in inspector.get_table_names():
@@ -104,28 +98,24 @@ with app.app_context():
                     try:
                         conn.execute(text('ALTER TABLE tasks ADD COLUMN due_date TIMESTAMP'))
                         conn.commit()
-                        print('✅ Added due_date')
                     except: pass
                 
                 if 'tags' not in columns:
                     try:
                         conn.execute(text('ALTER TABLE tasks ADD COLUMN tags TEXT'))
                         conn.commit()
-                        print('✅ Added tags')
                     except: pass
                 
                 if 'time_spent' not in columns:
                     try:
                         conn.execute(text('ALTER TABLE tasks ADD COLUMN time_spent INTEGER DEFAULT 0'))
                         conn.commit()
-                        print('✅ Added time_spent')
                     except: pass
                 
                 if 'completed_at' not in columns:
                     try:
                         conn.execute(text('ALTER TABLE tasks ADD COLUMN completed_at TIMESTAMP'))
                         conn.commit()
-                        print('✅ Added completed_at')
                     except: pass
         
         if 'users' in inspector.get_table_names():
@@ -136,14 +126,12 @@ with app.app_context():
                     try:
                         conn.execute(text("ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'active'"))
                         conn.commit()
-                        print('✅ Added status')
                     except: pass
                 
                 if 'last_active' not in columns:
                     try:
                         conn.execute(text('ALTER TABLE users ADD COLUMN last_active TIMESTAMP'))
                         conn.commit()
-                        print('✅ Added last_active')
                     except: pass
         
         print('✅ Database ready!')
@@ -206,20 +194,15 @@ def calculate_streak():
 # Routes
 @app.route('/')
 def index():
-    try:
-        if current_user.is_authenticated:
-            return redirect(url_for('dashboard'))
-        return redirect(url_for('auth'))
-    except:
-        return redirect(url_for('auth'))
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    return redirect(url_for('login_page'))
 
+@app.route('/login')
 @app.route('/auth')
-def auth():
-    try:
-        if current_user.is_authenticated:
-            return redirect(url_for('dashboard'))
-    except:
-        pass
+def login_page():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
     return render_template('auth.html')
 
 @app.route('/register', methods=['POST'])
@@ -230,11 +213,11 @@ def register():
     
     if User.query.filter_by(username=username).first():
         flash('Username already exists!', 'danger')
-        return redirect(url_for('auth'))
+        return redirect(url_for('login_page'))
     
     if User.query.filter_by(email=email).first():
         flash('Email already registered!', 'danger')
-        return redirect(url_for('auth'))
+        return redirect(url_for('login_page'))
     
     user = User(username=username, email=email)
     user.set_password(password)
@@ -242,7 +225,7 @@ def register():
     db.session.commit()
     
     flash('Registration successful! Please login.', 'success')
-    return redirect(url_for('auth'))
+    return redirect(url_for('login_page'))
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -258,7 +241,7 @@ def login():
         return redirect(url_for('dashboard'))
     else:
         flash('Invalid username or password!', 'danger')
-        return redirect(url_for('auth'))
+        return redirect(url_for('login_page'))
 
 @app.route('/dashboard')
 @login_required
@@ -326,7 +309,7 @@ def dashboard():
     except Exception as e:
         print(f"Dashboard error: {e}")
         flash('Error loading dashboard. Please try again.', 'danger')
-        return redirect(url_for('auth'))
+        return redirect(url_for('login_page'))
 
 @app.route('/add_task', methods=['POST'])
 @login_required
@@ -457,8 +440,7 @@ def admin():
 def logout():
     log_activity(f"Logged out", icon_type='info')
     logout_user()
-    return redirect(url_for('auth'))
+    return redirect(url_for('login_page'))
 
 if __name__ == '__main__':
     app.run(debug=True)
-
