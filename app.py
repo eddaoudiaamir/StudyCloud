@@ -310,6 +310,9 @@ def analytics():
     
     completion_rate = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
     
+    # 🎮 GAMIFICATION DATA FOR ANALYTICS
+    user_badges = current_user.get_badges()
+    
     return render_template('analytics.html',
                          total_tasks=total_tasks,
                          completed_tasks=completed_tasks,
@@ -317,7 +320,9 @@ def analytics():
                          high_priority=high_priority,
                          medium_priority=medium_priority,
                          low_priority=low_priority,
-                         completion_rate=round(completion_rate, 1))
+                         completion_rate=round(completion_rate, 1),
+                         user_badges=user_badges)
+
 
 @app.route('/admin')
 @login_required
@@ -339,4 +344,5 @@ def health():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
