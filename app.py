@@ -12,7 +12,7 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-i
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///studycloud.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Fix for Render's postgres:// URL (needs postgresql://)
+# Fix for Render's postgres:// URL
 if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
     app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql://', 1)
 
@@ -41,8 +41,9 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
-    status = db.Column(db.String(20), default='incomplete')  # complete/incomplete
-    priority = db.Column(db.String(20), default='medium')  # high/medium/low
+    status = db.Column(db.String(20), default='incomplete')
+    priority = db.Column(db.String(20), default='medium')
+    due_date = db.Column(db.DateTime, nullable=True)  # NEW: Due date field
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
@@ -121,7 +122,7 @@ def dashboard():
     if filter_priority != 'all':
         query = query.filter_by(priority=filter_priority)
     
-    tasks = query.order_by(Task.created_at.desc()).all()
+    tasks = query.order_by(Task.due_date.asc()).all()
     
     # Count tasks
     all_count = Task.query.filter_by(user_id=current_user.id).count()
@@ -142,8 +143,17 @@ def add_task():
     title = request.form.get('title')
     description = request.form.get('description')
     priority = request.form.get('priority', 'medium')
+    due_date_str = request.form.get('due_date')
     
-    task = Task(title=title, description=description, priority=priority, user_id=current_user.id)
+    # Parse due date
+    due_date = None
+    if due_date_str:
+        try:
+            due_date = datetime.strptime(due_date_str, '%Y-%m-%d')
+        except:
+            pass
+    
+    task = Task(title=title, description=description, priority=priority, due_date=due_date, user_id=current_user.id)
     db.session.add(task)
     db.session.commit()
     
@@ -179,16 +189,39 @@ def delete_task(task_id):
     flash('Task deleted successfully!', 'success')
     return redirect(url_for('dashboard'))
 
-@app.route('/logout')
+@app.route('/analytics')
 @login_required
-def logout():
-    logout_user()
-    return redirect(url_for('auth'))
+def analytics():
+    # Get all user tasks
+    tasks = Task.query.filter_by(user_id=current_user.id).all()
+    
+    # Calculate statistics
+    total_tasks = len(tasks)
+    completed = len([t for t in tasks if t.status == 'complete'])
+    incomplete = len([t for t in tasks if t.status == 'incomplete'])
+    
+    # Priority breakdown
+    high_priority = len([t for t in tasks if t.priority == 'high'])
+    medium_priority = len([t for t in tasks if t.priority == 'medium'])
+    low_priority = len([t for t in tasks if t.priority == 'low'])
+    
+    # Overdue tasks
+    now = datetime.utcnow()
+    overdue = len([t for t in tasks if t.due_date and t.due_date < now and t.status == 'incomplete'])
+    
+    return render_template('analytics.html',
+                         total_tasks=total_tasks,
+                         completed=completed,
+                         incomplete=incomplete,
+                         high_priority=high_priority,
+                         medium_priority=medium_priority,
+                         low_priority=low_priority,
+                         overdue=overdue,
+                         tasks=tasks)
 
 @app.route('/admin')
 @login_required
 def admin():
-    # Only admin user can access
     if current_user.username != 'admin':
         flash('Access denied! Admin only.', 'danger')
         return redirect(url_for('dashboard'))
@@ -196,7 +229,6 @@ def admin():
     users = User.query.all()
     tasks = Task.query.all()
     
-    # Calculate stats
     total_users = len(users)
     total_tasks = len(tasks)
     completed_tasks = Task.query.filter_by(status='complete').count()
@@ -207,6 +239,12 @@ def admin():
                          total_users=total_users,
                          total_tasks=total_tasks,
                          completed_tasks=completed_tasks)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('auth'))
 
 if __name__ == '__main__':
     app.run(debug=True)
