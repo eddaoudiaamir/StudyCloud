@@ -6,30 +6,6 @@
     <title>Admin Panel - StudyCloud</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='templatemo-glass-admin-style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        .admin-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 30px; }
-        @media (max-width: 1024px) { .admin-grid { grid-template-columns: 1fr; } }
-        .user-status-grid { display: grid; gap: 12px; padding: 20px; }
-        .user-status-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 15px;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            transition: all 0.2s;
-        }
-        .user-status-item:hover {
-            transform: translateX(5px);
-            border-color: var(--purple);
-        }
-        .relative-time {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-family: 'Space Mono', monospace;
-        }
-    </style>
 </head>
 <body>
     <!-- Animated Background -->
@@ -60,7 +36,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#users" class="nav-link">
+                                <a href="{{ url_for('admin') }}" class="nav-link">
                                     <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                                     </svg>
@@ -69,7 +45,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#tasks" class="nav-link">
+                                <a href="{{ url_for('admin') }}" class="nav-link">
                                     <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                                     </svg>
@@ -171,12 +147,6 @@
                         <div class="stat-info">
                             <h3>Total Users</h3>
                             <div class="stat-value">{{ total_users }}</div>
-                            <span class="stat-change positive">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                                </svg>
-                                Registered
-                            </span>
                         </div>
                         <div class="stat-icon cyan">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -191,9 +161,6 @@
                         <div class="stat-info">
                             <h3>Total Tasks</h3>
                             <div class="stat-value">{{ total_tasks }}</div>
-                            <span class="stat-change positive">
-                                Platform-wide
-                            </span>
                         </div>
                         <div class="stat-icon magenta">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -228,7 +195,6 @@
                         <div class="stat-info">
                             <h3>Completion Rate</h3>
                             <div class="stat-value">{% if total_tasks > 0 %}{{ ((completed_tasks / total_tasks) * 100)|round|int }}%{% else %}0%{% endif %}</div>
-                            <span class="stat-change positive">Overall</span>
                         </div>
                         <div class="stat-icon purple">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,99 +205,8 @@
                 </div>
             </div>
 
-            <!-- User Status + System Overview -->
-            <div class="admin-grid">
-                <!-- Active Users -->
-                <div class="glass-card">
-                    <div class="card-header">
-                        <div>
-                            <h2 class="card-title">👥 User Status</h2>
-                            <p class="card-subtitle">Real-time activity</p>
-                        </div>
-                    </div>
-                    <div class="user-status-grid">
-                        {% for user in users %}
-                        <div class="user-status-item">
-                            <div class="table-avatar" style="background: linear-gradient(135deg, var(--purple), var(--pink)); width: 45px; height: 45px; font-size: 18px;">
-                                {{ user.username[0]|upper }}
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">{{ user.username }}</div>
-                                <div style="font-size: 12px; color: var(--text-muted);">{{ user.email }}</div>
-                            </div>
-                            <div style="text-align: right;">
-                                <span class="status-badge {{ user.status }}">
-                                    <span class="status-dot {{ user.status }}"></span>
-                                    {{ user.status|upper }}
-                                </span>
-                                {% if user.last_active %}
-                                <div class="relative-time">{{ user.last_active.strftime('%b %d, %I:%M %p') }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <!-- System Stats -->
-                <div class="glass-card">
-                    <div class="card-header">
-                        <div>
-                            <h2 class="card-title">📊 System Overview</h2>
-                            <p class="card-subtitle">Platform statistics</p>
-                        </div>
-                    </div>
-                    <div style="padding: 20px;">
-                        <div style="margin-bottom: 25px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span style="color: var(--text-secondary); font-size: 14px;">Active Users</span>
-                                <span style="color: var(--text-primary); font-weight: 600;">{{ users|selectattr('status', 'equalto', 'active')|list|length }}</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill success" style="width: {{ ((users|selectattr('status', 'equalto', 'active')|list|length / total_users) * 100) if total_users > 0 else 0 }}%"></div>
-                            </div>
-                        </div>
-
-                        <div style="margin-bottom: 25px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span style="color: var(--text-secondary); font-size: 14px;">Away Users</span>
-                                <span style="color: var(--text-primary); font-weight: 600;">{{ users|selectattr('status', 'equalto', 'away')|list|length }}</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill warning" style="width: {{ ((users|selectattr('status', 'equalto', 'away')|list|length / total_users) * 100) if total_users > 0 else 0 }}%"></div>
-                            </div>
-                        </div>
-
-                        <div style="margin-bottom: 25px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span style="color: var(--text-secondary); font-size: 14px;">Offline Users</span>
-                                <span style="color: var(--text-primary); font-weight: 600;">{{ users|selectattr('status', 'equalto', 'offline')|list|length }}</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: {{ ((users|selectattr('status', 'equalto', 'offline')|list|length / total_users) * 100) if total_users > 0 else 0 }}%; background: rgba(107, 114, 128, 0.5);"></div>
-                            </div>
-                        </div>
-
-                        <div style="padding-top: 20px; border-top: 1px solid var(--glass-border); display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-                            <div style="text-align: center;">
-                                <div style="font-size: 28px; font-weight: 700; background: linear-gradient(135deg, var(--purple-light), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                                    {{ (completed_tasks / total_tasks * 100)|round|int if total_tasks > 0 else 0 }}%
-                                </div>
-                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">Success Rate</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-size: 28px; font-weight: 700; background: linear-gradient(135deg, var(--cyan), var(--purple-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                                    {{ (total_tasks / total_users)|round|int if total_users > 0 else 0 }}
-                                </div>
-                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">Avg Tasks/User</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Users Table -->
-            <div class="glass-card table-card" style="margin-bottom: 30px;" id="users">
+            <div class="glass-card table-card" style="margin-bottom: 30px;">
                 <div class="card-header">
                     <div>
                         <h2 class="card-title">👥 All Users</h2>
@@ -346,10 +221,8 @@
                                 <th>ID</th>
                                 <th>User</th>
                                 <th>Email</th>
-                                <th>Status</th>
                                 <th>Tasks Count</th>
                                 <th>Completed</th>
-                                <th>Last Active</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -368,12 +241,6 @@
                                     </div>
                                 </td>
                                 <td>{{ user.email }}</td>
-                                <td>
-                                    <span class="status-badge {{ user.status }}">
-                                        <span class="status-dot {{ user.status }}"></span>
-                                        {{ user.status|upper }}
-                                    </span>
-                                </td>
                                 <td><strong style="color: var(--text-primary);">{{ user.tasks|length }}</strong></td>
                                 <td>
                                     {% set completed = user.tasks|selectattr('status', 'equalto', 'complete')|list|length %}
@@ -384,13 +251,6 @@
                                         {{ completed }}
                                     </span>
                                 </td>
-                                <td>
-                                    {% if user.last_active %}
-                                        <span class="relative-time">{{ user.last_active.strftime('%b %d, %I:%M %p') }}</span>
-                                    {% else %}
-                                        <span style="color: var(--text-muted);">Never</span>
-                                    {% endif %}
-                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -399,7 +259,7 @@
             </div>
 
             <!-- All Tasks Table -->
-            <div class="glass-card table-card" id="tasks">
+            <div class="glass-card table-card">
                 <div class="card-header">
                     <div>
                         <h2 class="card-title">📚 All Tasks</h2>
