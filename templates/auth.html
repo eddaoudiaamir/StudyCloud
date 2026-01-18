@@ -252,7 +252,8 @@
 
             <!-- Login Form -->
             <div class="form-content active" id="login-form">
-                <form action="{{ url_for('login') }}" method="POST">
+                <form action="{{ url_for('auth') }}" method="POST">
+                    <input type="hidden" name="action" value="login">
                     <div class="form-group">
                         <label class="form-label">Username</label>
                         <input type="text" name="username" class="form-input" placeholder="Enter your username" required>
@@ -269,7 +270,8 @@
 
             <!-- Register Form -->
             <div class="form-content" id="register-form">
-                <form action="{{ url_for('register') }}" method="POST">
+                <form action="{{ url_for('auth') }}" method="POST">
+                    <input type="hidden" name="action" value="register">
                     <div class="form-group">
                         <label class="form-label">Username</label>
                         <input type="text" name="username" class="form-input" placeholder="Choose a username" required>
