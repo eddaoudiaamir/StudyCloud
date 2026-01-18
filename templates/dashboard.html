@@ -7,15 +7,33 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='templatemo-glass-admin-style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        .timer-display { font-size: 48px; font-weight: 700; font-family: 'Space Mono', monospace; color: var(--text-primary); }
-        .task-timer { font-family: 'Space Mono', monospace; font-size: 12px; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px; }
-        .timer-urgent { background: rgba(220, 38, 38, 0.15); color: var(--danger); }
-        .timer-soon { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
-        .timer-ok { background: rgba(34, 197, 94, 0.15); color: var(--success); }
-        .timer-overdue { background: rgba(220, 38, 38, 0.25); color: var(--danger); font-weight: 600; }
-        .content-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 30px; }
-        .content-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 30px; }
-        @media (max-width: 1200px) { .content-grid-3 { grid-template-columns: 1fr; } }
+        /* Timer styles */
+        .task-timer {
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .timer-urgent {
+            background: rgba(220, 38, 38, 0.15);
+            color: var(--danger);
+        }
+        .timer-soon {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+        .timer-ok {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--success);
+        }
+        .timer-overdue {
+            background: rgba(220, 38, 38, 0.25);
+            color: var(--danger);
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -52,7 +70,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                                     </svg>
                                     My Tasks
-                                    <span class="nav-badge">{{ all_count }}</span>
+                                    <span class="nav-badge">{{ tasks|length }}</span>
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -132,7 +150,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
                     </button>
-                    <h1 class="page-title">📚 Dashboard</h1>
+                    <h1 class="page-title">📚 My Tasks</h1>
                 </div>
                 
                 <div class="navbar-right">
@@ -234,180 +252,12 @@
                 </div>
             </div>
 
-            <!-- Quick Actions + Streak + Pomodoro -->
-            <div class="content-grid-3">
-                <!-- Quick Actions -->
-                <div class="glass-card">
-                    <div class="card-header">
-                        <div>
-                            <h2 class="card-title">⚡ Quick Actions</h2>
-                            <p class="card-subtitle">Fast shortcuts</p>
-                        </div>
-                    </div>
-                    <div class="quick-actions-grid">
-                        <a href="#add-task" onclick="document.querySelector('input[name=title]').focus()" class="quick-action-btn">
-                            <div class="quick-action-icon purple">📝</div>
-                            <span>Add Task</span>
-                        </a>
-                        <a href="{{ url_for('analytics') }}" class="quick-action-btn">
-                            <div class="quick-action-icon pink">📊</div>
-                            <span>Analytics</span>
-                        </a>
-                        <a href="{{ url_for('dashboard') }}" class="quick-action-btn">
-                            <div class="quick-action-icon cyan">📅</div>
-                            <span>My Tasks</span>
-                        </a>
-                        <a href="#pomodoro" onclick="startPomodoro()" class="quick-action-btn">
-                            <div class="quick-action-icon green">⏱️</div>
-                            <span>Timer</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Productivity Streak -->
-                <div class="glass-card">
-                    <div class="card-header">
-                        <div>
-                            <h2 class="card-title">🔥 Productivity Streak</h2>
-                            <p class="card-subtitle">Keep it going!</p>
-                        </div>
-                    </div>
-                    <div class="streak-display">
-                        <div class="streak-emoji">🔥</div>
-                        <div>
-                            <div class="streak-number">{{ streak }}</div>
-                            <div style="text-align: center; color: var(--text-secondary); font-size: 14px; margin-top: 10px;">Days Streak</div>
-                        </div>
-                    </div>
-                    <div style="padding: 0 20px 20px;">
-                        <div class="streak-info">
-                            <div class="streak-label">Weekly Rate</div>
-                            <div class="streak-value">{{ weekly_rate|round|int }}%</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pomodoro Timer -->
-                <div class="glass-card">
-                    <div class="card-header">
-                        <div>
-                            <h2 class="card-title">⏱️ Pomodoro Timer</h2>
-                            <p class="card-subtitle">Stay focused</p>
-                        </div>
-                    </div>
-                    <div class="pomodoro-timer">
-                        <div class="timer-circle">
-                            <div class="timer-display" id="pomodoro-display">25:00</div>
-                        </div>
-                        <div class="timer-controls">
-                            <button class="timer-btn" onclick="startPomodoro()">▶️ Start</button>
-                            <button class="timer-btn" onclick="pausePomodoro()">⏸️ Pause</button>
-                            <button class="timer-btn" onclick="resetPomodoro()">🔄 Reset</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Upcoming Deadlines + Recent Activity -->
-            <div class="content-grid">
-                <!-- Upcoming Deadlines -->
-                <div class="glass-card">
-                    <div class="card-header">
-                        <div>
-                            <h2 class="card-title">📅 Upcoming Deadlines</h2>
-                            <p class="card-subtitle">Next {{ upcoming|length }} tasks</p>
-                        </div>
-                    </div>
-                    <div style="padding: 20px;">
-                        {% if upcoming %}
-                            {% for task in upcoming %}
-                            {% set days_left = ((task.due_date - now).total_seconds() / 86400)|int if task.due_date else 0 %}
-                            <div class="deadline-item">
-                                <div class="deadline-indicator {% if days_left < 1 %}urgent{% elif days_left < 3 %}soon{% else %}ok{% endif %}"></div>
-                                <div class="deadline-content">
-                                    <div class="deadline-title">{{ task.title }}</div>
-                                    <div class="deadline-time">
-                                        {% if task.due_date %}
-                                            Due {{ task.due_date.strftime('%b %d, %Y') }}
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <span class="priority-badge {{ task.priority }}">{{ task.priority|upper }}</span>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                            <div style="text-align: center; padding: 40px; color: var(--text-muted);">
-                                No upcoming deadlines! 🎉
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Recent Activity -->
-                <div class="glass-card">
-                    <div class="card-header">
-                        <div>
-                            <h2 class="card-title">📰 Recent Activity</h2>
-                            <p class="card-subtitle">Your latest actions</p>
-                        </div>
-                    </div>
-                    <div style="padding: 20px;">
-                        {% if recent_activities %}
-                            {% for activity in recent_activities %}
-                            <div class="activity-item">
-                                <div class="activity-icon {{ activity.icon_type }}">
-                                    {% if activity.icon_type == 'success' %}✅
-                                    {% elif activity.icon_type == 'warning' %}⚠️
-                                    {% else %}ℹ️{% endif %}
-                                </div>
-                                <div class="activity-content">
-                                    <div class="activity-text">
-                                        {{ activity.action }}
-                                        {% if activity.task_title %}<strong>"{{ activity.task_title }}"</strong>{% endif %}
-                                    </div>
-                                    <div class="activity-time">{{ activity.created_at.strftime('%b %d, %I:%M %p') }}</div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                            <div style="text-align: center; padding: 40px; color: var(--text-muted);">
-                                No recent activity
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Completion Graph -->
+            <!-- Add New Task Card -->
             <div class="glass-card" style="margin-bottom: 30px;">
                 <div class="card-header">
                     <div>
-                        <h2 class="card-title">📈 7-Day Completion Trend</h2>
-                        <p class="card-subtitle">Tasks completed per day</p>
-                    </div>
-                </div>
-                <div class="mini-chart">
-                    {% for count in completion_data %}
-                    <div class="chart-bar" style="height: {% if count > 0 %}{{ (count * 20)|min(100) }}%{% else %}10%{% endif %}" data-value="{{ count }}"></div>
-                    {% endfor %}
-                </div>
-                <div style="display: flex; justify-content: space-around; padding: 0 20px 20px; font-size: 11px; color: var(--text-muted);">
-                    <span>6d ago</span>
-                    <span>5d ago</span>
-                    <span>4d ago</span>
-                    <span>3d ago</span>
-                    <span>2d ago</span>
-                    <span>Yesterday</span>
-                    <span>Today</span>
-                </div>
-            </div>
-
-            <!-- Add New Task Card -->
-            <div class="glass-card" style="margin-bottom: 30px;" id="add-task">
-                <div class="card-header">
-                    <div>
                         <h2 class="card-title">➕ Add New Task</h2>
-                        <p class="card-subtitle">Create with tags and deadline</p>
+                        <p class="card-subtitle">Create a new task with due date</p>
                     </div>
                 </div>
                 <form action="{{ url_for('add_task') }}" method="POST">
@@ -423,10 +273,6 @@
                             <option value="high">🔴 High</option>
                         </select>
                         <input type="date" name="due_date" 
-                               style="padding: 12px 16px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text-primary); font-family: inherit; font-size: 14px; width: 100%;">
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <input type="text" name="tags" placeholder="Tags (comma separated, e.g. Math, Homework, Exam)" 
                                style="padding: 12px 16px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text-primary); font-family: inherit; font-size: 14px; width: 100%;">
                     </div>
                     <button type="submit" class="btn btn-primary">
@@ -458,7 +304,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Task</th>
-                                <th>Tags</th>
+                                <th>Description</th>
                                 <th>Priority</th>
                                 <th>Status</th>
                                 <th>Due Date</th>
@@ -471,20 +317,8 @@
                                 {% for task in tasks %}
                                 <tr>
                                     <td>{{ task.id }}</td>
-                                    <td>
-                                        <strong style="color: var(--text-primary);">{{ task.title }}</strong>
-                                        {% if task.description %}
-                                        <br><small style="color: var(--text-muted);">{{ task.description }}</small>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% for tag in task.get_tags() %}
-                                        <span class="task-tag">#{{ tag }}</span>
-                                        {% endfor %}
-                                        {% if not task.get_tags() %}
-                                        <span style="color: var(--text-muted); font-size: 12px;">-</span>
-                                        {% endif %}
-                                    </td>
+                                    <td><strong style="color: var(--text-primary);">{{ task.title }}</strong></td>
+                                    <td>{{ task.description or 'No description' }}</td>
                                     <td>
                                         <span class="priority-badge {{ task.priority }}">
                                             {{ task.priority|upper }}
@@ -554,10 +388,6 @@
     <script src="{{ url_for('static', filename='templatemo-glass-admin-script.js') }}"></script>
     <script src="{{ url_for('static', filename='animated-borders.js') }}"></script>
     <script>
-        // Set now for timer calculations
-        {% set now = [] %}
-        {% if now.append(datetime.utcnow()) %}{% endif %}
-
         // Countdown Timer for Tasks
         function updateTimers() {
             const timers = document.querySelectorAll('.task-timer[data-due-date]');
@@ -568,68 +398,53 @@
                 const diff = dueDate - now;
                 
                 if (diff < 0) {
+                    // Overdue
                     timer.className = 'task-timer timer-overdue';
-                    timer.innerHTML = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> OVERDUE!`;
+                    timer.innerHTML = `
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        OVERDUE!
+                    `;
                 } else {
                     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
                     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                     
-                    let timeText = days > 0 ? `${days}d ${hours}h` : hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+                    let timeText = '';
+                    if (days > 0) {
+                        timeText = `${days}d ${hours}h`;
+                    } else if (hours > 0) {
+                        timeText = `${hours}h ${minutes}m`;
+                    } else {
+                        timeText = `${minutes}m`;
+                    }
                     
+                    // Color coding
                     if (diff < 24 * 60 * 60 * 1000) {
+                        // Less than 1 day - urgent
                         timer.className = 'task-timer timer-urgent';
                     } else if (diff < 3 * 24 * 60 * 60 * 1000) {
+                        // Less than 3 days - soon
                         timer.className = 'task-timer timer-soon';
                     } else {
+                        // More than 3 days - ok
                         timer.className = 'task-timer timer-ok';
                     }
                     
-                    timer.innerHTML = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> ${timeText}`;
+                    timer.innerHTML = `
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        ${timeText}
+                    `;
                 }
             });
         }
         
+        // Update timers immediately and every minute
         updateTimers();
         setInterval(updateTimers, 60000);
-
-        // Pomodoro Timer
-        let pomodoroInterval;
-        let pomodoroSeconds = 25 * 60;
-        let isRunning = false;
-
-        function updatePomodoroDisplay() {
-            const minutes = Math.floor(pomodoroSeconds / 60);
-            const seconds = pomodoroSeconds % 60;
-            document.getElementById('pomodoro-display').textContent = 
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-
-        function startPomodoro() {
-            if (!isRunning) {
-                isRunning = true;
-                pomodoroInterval = setInterval(() => {
-                    if (pomodoroSeconds > 0) {
-                        pomodoroSeconds--;
-                        updatePomodoroDisplay();
-                    } else {
-                        pausePomodoro();
-                        alert('🎉 Pomodoro completed! Take a 5-minute break!');
-                    }
-                }, 1000);
-            }
-        }
-
-        function pausePomodoro() {
-            isRunning = false;
-            clearInterval(pomodoroInterval);
-        }
-
-        function resetPomodoro() {
-            pausePomodoro();
-            pomodoroSeconds = 25 * 60;
-            updatePomodoroDisplay();
-        }
     </script>
 </body>
 </html>
