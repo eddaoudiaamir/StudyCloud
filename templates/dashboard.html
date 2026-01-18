@@ -53,32 +53,92 @@
             gap: 20px;
         }
 
+        /* ANIMATED THEME TOGGLE BUTTON */
         .theme-toggle {
-            background: rgba(255,255,255,0.2);
-            border: none;
+            user-select: none;
+            position: relative;
+            border-radius: 100px;
             color: white;
-            padding: 10px 15px;
-            border-radius: 20px;
-            cursor: pointer;
+            font-weight: 600;
             font-size: 1.2em;
-            transition: all 0.3s;
+            padding: 0;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            background: transparent;
+            transition: all 0.16s ease-out;
+        }
+
+        .theme-toggle:active {
+            scale: 0.95;
+        }
+
+        .btn-content-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 15px;
+            border-radius: inherit;
+            position: relative;
+            z-index: 2;
+        }
+
+        .btn-content-toggle::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: rgba(0, 0, 0, 0.2);
+            opacity: 1;
+            z-index: -1;
         }
 
         .theme-toggle:hover {
-            background: rgba(255,255,255,0.3);
             transform: scale(1.1);
         }
 
+        /* ANIMATED LOGOUT BUTTON */
         .logout-btn {
-            background: rgba(255,255,255,0.2);
+            user-select: none;
+            position: relative;
+            border-radius: 100px;
             color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
+            font-weight: 600;
+            padding: 0;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            background: transparent;
+            transition: all 0.16s ease-out;
             text-decoration: none;
-            transition: background 0.3s;
+            display: inline-block;
         }
 
-        .logout-btn:hover { background: rgba(255,255,255,0.3); }
+        .logout-btn:active {
+            scale: 0.95;
+        }
+
+        .btn-content-logout {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            border-radius: inherit;
+            position: relative;
+            z-index: 2;
+        }
+
+        .btn-content-logout::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: rgba(0, 0, 0, 0.2);
+            opacity: 1;
+            z-index: -1;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
 
         .container {
             max-width: 1200px;
@@ -86,7 +146,7 @@
             padding: 0 20px;
         }
 
-        /* TABS STYLING */
+        /* ANIMATED TABS */
         .tabs {
             display: flex;
             gap: 15px;
@@ -99,37 +159,76 @@
         }
 
         .tab {
+            user-select: none;
+            position: relative;
             padding: 15px 30px;
-            border-radius: 12px;
+            border-radius: 100px;
             cursor: pointer;
             transition: all 0.3s;
-            border: 2px solid transparent;
             font-weight: 600;
             text-decoration: none;
             color: var(--text-secondary);
             background: var(--bg-secondary);
-            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .tab:active {
+            scale: 0.97;
         }
 
         .tab.all { border-color: #667eea; }
         .tab.all.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #000;
             color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            position: relative;
+        }
+
+        .tab.all.active::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: conic-gradient(from 0deg, #667eea, #764ba2, #667eea);
+            animation: spin 3s linear infinite;
+            z-index: -1;
         }
 
         .tab.incomplete { border-color: #ffc107; }
         .tab.incomplete.active {
-            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            background: #000;
             color: white;
-            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+            position: relative;
+        }
+
+        .tab.incomplete.active::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: conic-gradient(from 0deg, #ffc107, #ff9800, #ffc107);
+            animation: spin 3s linear infinite;
+            z-index: -1;
         }
 
         .tab.complete { border-color: #28a745; }
         .tab.complete.active {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: #000;
             color: white;
-            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+            position: relative;
+        }
+
+        .tab.complete.active::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: conic-gradient(from 0deg, #28a745, #20c997, #28a745);
+            animation: spin 3s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes spin {
+            to { rotate: 360deg; }
         }
 
         .tab:hover:not(.active) {
@@ -137,7 +236,7 @@
             box-shadow: 0 4px 12px var(--shadow);
         }
 
-        /* PRIORITY FILTERS */
+        /* ANIMATED FILTER BUTTONS */
         .filter-section {
             background: var(--bg-card);
             padding: 20px;
@@ -150,8 +249,10 @@
         }
 
         .filter-btn {
+            user-select: none;
+            position: relative;
             padding: 8px 20px;
-            border-radius: 20px;
+            border-radius: 100px;
             border: 2px solid var(--border-color);
             background: var(--bg-secondary);
             cursor: pointer;
@@ -161,32 +262,65 @@
             font-weight: 600;
         }
 
-        .filter-btn.active {
-            transform: scale(1.05);
+        .filter-btn:active {
+            scale: 0.95;
         }
 
-        .filter-btn.priority-all.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .filter-btn.active {
+            background: #000;
             color: white;
-            border-color: #667eea;
+        }
+
+        .filter-btn.priority-all.active::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: conic-gradient(from 0deg, #667eea, #764ba2, #667eea);
+            animation: spin 2s linear infinite;
+            z-index: -1;
         }
 
         .filter-btn.priority-high { border-color: #dc3545; color: #dc3545; }
         .filter-btn.priority-high.active {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
             color: white;
+        }
+        .filter-btn.priority-high.active::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: conic-gradient(from 0deg, #dc3545, #c82333, #dc3545);
+            animation: spin 2s linear infinite;
+            z-index: -1;
         }
 
         .filter-btn.priority-medium { border-color: #ffc107; color: #e0a800; }
         .filter-btn.priority-medium.active {
-            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
             color: white;
+        }
+        .filter-btn.priority-medium.active::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: conic-gradient(from 0deg, #ffc107, #ff9800, #ffc107);
+            animation: spin 2s linear infinite;
+            z-index: -1;
         }
 
         .filter-btn.priority-low { border-color: #28a745; color: #28a745; }
         .filter-btn.priority-low.active {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
+        }
+        .filter-btn.priority-low.active::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: conic-gradient(from 0deg, #28a745, #20c997, #28a745);
+            animation: spin 2s linear infinite;
+            z-index: -1;
         }
 
         .card {
@@ -224,54 +358,77 @@
             border-color: #667eea;
         }
 
-        /* ANIMATED BUTTON STYLING */
-        .btn-wrapper {
+        /* ANIMATED SUBMIT BUTTON */
+        .btn-animated {
+            user-select: none;
             position: relative;
-            display: inline-block;
+            border-radius: 100px;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 0;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            cursor: pointer;
+            background: var(--bg-card);
+            transition: all 0.16s ease-out;
+            width: 100%;
             margin-top: 10px;
         }
 
-        .btn-wrapper::before,
-        .btn-wrapper::after {
+        .btn-animated:active {
+            translate: 0 1px;
+            scale: 0.99;
+        }
+
+        .btn-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 12px 40px;
+            border-radius: inherit;
+            position: relative;
+            z-index: 2;
+        }
+
+        .btn-content::before {
             content: '';
             position: absolute;
-            inset: -2px;
-            border-radius: 10px;
-            background: conic-gradient(
-                from 0deg,
-                #402fb5,
-                #cf30aa,
-                #402fb5
-            );
-            animation: rotate 4s linear infinite;
+            inset: 0;
+            border-radius: inherit;
+            background: var(--bg-card);
+            opacity: 1;
             z-index: -1;
         }
 
-        .btn-wrapper::after {
-            filter: blur(10px);
-            opacity: 0.7;
+        .btn-border {
+            position: absolute;
+            inset: -2px;
+            border: 2px solid transparent;
+            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0) border-box;
+            mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0) border-box;
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            border-radius: inherit;
         }
 
-        button {
-            padding: 12px 40px;
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-            z-index: 1;
-        }
-
-        button:hover {
-            transform: scale(1.02);
-        }
-
-        @keyframes rotate {
-            to { transform: rotate(360deg); }
+        .btn-border::after {
+            content: '';
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(
+                from 0deg,
+                #0000 0 20%,
+                #402fb5 30%,
+                #cf30aa 70%,
+                #0000 80% 100%
+            );
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            translate: -50% -50%;
+            z-index: -1;
+            animation: spin 2s infinite linear;
         }
 
         .task {
@@ -354,32 +511,55 @@
             gap: 10px;
         }
 
+        /* ANIMATED ACTION BUTTONS */
         .btn-check, .btn-delete {
+            user-select: none;
+            position: relative;
             padding: 10px 20px;
             color: white;
             text-decoration: none;
-            border-radius: 8px;
+            border-radius: 100px;
             font-size: 0.9em;
-            transition: all 0.3s;
             font-weight: 600;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            display: inline-block;
         }
 
         .btn-check {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: #000;
         }
 
-        .btn-check:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        .btn-check::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: conic-gradient(from 0deg, #28a745, #20c997, #28a745);
+            animation: spin 2s linear infinite;
+            z-index: -1;
+        }
+
+        .btn-check:active {
+            scale: 0.95;
         }
 
         .btn-delete {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            background: #000;
         }
 
-        .btn-delete:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+        .btn-delete::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: conic-gradient(from 0deg, #dc3545, #c82333, #dc3545);
+            animation: spin 2s linear infinite;
+            z-index: -1;
+        }
+
+        .btn-delete:active {
+            scale: 0.95;
         }
 
         .empty-state {
@@ -433,9 +613,13 @@
     <div class="header">
         <h1>📚 StudyCloud Dashboard</h1>
         <div class="user-info">
-            <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <span class="btn-content-toggle">🌓</span>
+            </button>
             <span>Welcome, <strong>{{ current_user.username }}</strong>!</span>
-            <a href="/logout" class="logout-btn">Logout</a>
+            <a href="/logout" class="logout-btn">
+                <span class="btn-content-logout">Logout</span>
+            </a>
         </div>
     </div>
     
@@ -510,9 +694,12 @@
                     <option value="medium" selected>🟡 Medium Priority</option>
                     <option value="high">🔴 High Priority</option>
                 </select>
-                <div class="btn-wrapper">
-                    <button type="submit">✨ Add Task</button>
-                </div>
+                <button type="submit" class="btn-animated">
+                    <span class="btn-content">
+                        <span>✨ Add Task</span>
+                    </span>
+                    <span class="btn-border"></span>
+                </button>
             </form>
         </div>
         
