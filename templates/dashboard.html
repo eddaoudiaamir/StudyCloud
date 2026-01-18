@@ -1,306 +1,330 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - StudyCloud</title>
-    <style>
-        :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f5f7fa;
-            --bg-card: #ffffff;
-            --text-primary: #333333;
-            --text-secondary: #666666;
-        }
-
-        [data-theme="dark"] {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #111116;
-            --bg-card: #1a1a1f;
-            --text-primary: #ffffff;
-            --text-secondary: #c0b9c0;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: Arial, sans-serif;
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            min-height: 100vh;
-        }
-
-        /* MOVING SHAPES */
-        .shapes {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        .shape {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.4;
-        }
-
-        .shape1 {
-            width: 400px;
-            height: 400px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            top: -100px;
-            left: -100px;
-            animation: float1 25s infinite ease-in-out;
-        }
-
-        .shape2 {
-            width: 350px;
-            height: 350px;
-            background: linear-gradient(135deg, #f093fb, #f5576c);
-            top: 50%;
-            right: -100px;
-            animation: float2 30s infinite ease-in-out;
-        }
-
-        .shape3 {
-            width: 300px;
-            height: 300px;
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
-            bottom: -100px;
-            left: 20%;
-            animation: float3 35s infinite ease-in-out;
-        }
-
-        @keyframes float1 {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(100px, 100px); }
-        }
-
-        @keyframes float2 {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(-150px, 150px); }
-        }
-
-        @keyframes float3 {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(120px, -120px); }
-        }
-
-        .header {
-            background: linear-gradient(135deg, #402fb5 0%, #cf30aa 100%);
-            color: white;
-            padding: 20px;
-            position: relative;
-            z-index: 10;
-        }
-
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .theme-toggle, .logout-btn {
-            background: rgba(255,255,255,0.2);
-            border: 2px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .theme-toggle:hover, .logout-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        .logout-btn {
-            text-decoration: none;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .card {
-            background: var(--bg-card);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .tab {
-            padding: 12px 24px;
-            border-radius: 50px;
-            text-decoration: none;
-            color: var(--text-primary);
-            background: var(--bg-card);
-            border: 2px solid #ccc;
-            font-weight: 600;
-        }
-
-        .tab.active {
-            border-color: #667eea;
-            background: #667eea;
-            color: white;
-        }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #402fb5, #cf30aa);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            opacity: 0.9;
-        }
-
-        .task {
-            background: var(--bg-secondary);
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .task-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-check, .btn-delete {
-            padding: 8px 16px;
-            border-radius: 50px;
-            text-decoration: none;
-            color: white;
-            font-weight: 600;
-        }
-
-        .btn-check {
-            background: #28a745;
-        }
-
-        .btn-delete {
-            background: #dc3545;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='templatemo-glass-admin-style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="shapes">
-        <div class="shape shape1"></div>
-        <div class="shape shape2"></div>
-        <div class="shape shape3"></div>
-    </div>
+    <!-- Animated Background -->
+    <div class="background"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
 
-    <div class="header">
-        <div class="header-content">
-            <h1>📚 StudyCloud</h1>
-            <div style="display: flex; gap: 15px; align-items: center;">
-                <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
-                <span>{{ current_user.username }}</span>
-                <a href="/logout" class="logout-btn">Logout</a>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">SC</div>
+                <div class="logo-text">StudyCloud</div>
             </div>
-        </div>
-    </div>
-    
-    <div class="container">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for message in messages %}
-                    <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
 
-        <div class="tabs">
-            <a href="/dashboard?status=all" class="tab {% if filter_status == 'all' %}active{% endif %}">All</a>
-            <a href="/dashboard?status=incomplete" class="tab {% if filter_status == 'incomplete' %}active{% endif %}">In Progress</a>
-            <a href="/dashboard?status=complete" class="tab {% if filter_status == 'complete' %}active{% endif %}">Completed</a>
-        </div>
-        
-        <div class="card">
-            <h2>Add Task</h2>
-            <form method="POST" action="/add_task">
-                <input type="text" name="title" placeholder="Task Title" required>
-                <textarea name="description" placeholder="Description" rows="3"></textarea>
-                <select name="priority" required>
-                    <option value="low">Low Priority</option>
-                    <option value="medium" selected>Medium Priority</option>
-                    <option value="high">High Priority</option>
-                </select>
-                <button type="submit">Add Task</button>
-            </form>
-        </div>
-        
-        <div class="card">
-            <h2>Your Tasks ({{ tasks|length }})</h2>
-            {% for task in tasks %}
-                <div class="task">
-                    <div>
-                        <h3>{{ task.title }}</h3>
-                        <p>{{ task.description }}</p>
-                        <small>{{ task.priority }} - {{ task.created_at.strftime('%b %d') }}</small>
-                    </div>
-                    <div class="task-actions">
-                        <a href="/toggle_task/{{ task.id }}" class="btn-check">✓</a>
-                        <a href="/delete_task/{{ task.id }}" class="btn-delete">×</a>
+            <nav class="nav-menu">
+                <ul>
+                    <li class="nav-section">
+                        <div class="nav-section-title">Main</div>
+                        <ul>
+                            <li class="nav-item">
+                                <a href="{{ url_for('dashboard') }}" class="nav-link active">
+                                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                    </svg>
+                                    Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ url_for('dashboard') }}" class="nav-link">
+                                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                    </svg>
+                                    My Tasks
+                                    <span class="nav-badge">{{ tasks|length }}</span>
+                                </a>
+                            </li>
+                            {% if current_user.username == 'admin' %}
+                            <li class="nav-item">
+                                <a href="{{ url_for('admin') }}" class="nav-link">
+                                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                    </svg>
+                                    Admin Panel
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </li>
+
+                    <li class="nav-section">
+                        <div class="nav-section-title">Filters</div>
+                        <ul>
+                            <li class="nav-item">
+                                <a href="{{ url_for('dashboard', status='all') }}" class="nav-link">
+                                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                    </svg>
+                                    All Tasks
+                                    <span class="nav-badge">{{ all_count }}</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ url_for('dashboard', status='complete') }}" class="nav-link">
+                                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Completed
+                                    <span class="nav-badge">{{ complete_count }}</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ url_for('dashboard', status='incomplete') }}" class="nav-link">
+                                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Pending
+                                    <span class="nav-badge">{{ incomplete_count }}</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">{{ current_user.username[0]|upper }}</div>
+                    <div class="user-info">
+                        <div class="user-name">{{ current_user.username }}</div>
+                        <div class="user-role">{{ current_user.email }}</div>
                     </div>
                 </div>
-            {% endfor %}
-        </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Navbar -->
+            <nav class="navbar">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button class="nav-btn mobile-menu-toggle" style="display: none;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    <h1 class="page-title">📚 My Tasks</h1>
+                </div>
+                
+                <div class="navbar-right">
+                    <button class="nav-btn" id="theme-toggle">
+                        <svg class="icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: block;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <svg class="icon-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                        </svg>
+                    </button>
+                    <a href="{{ url_for('logout') }}" class="nav-btn" title="Logout">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="glass-card" style="margin-bottom: 20px; padding: 15px; background: {% if category == 'success' %}rgba(34, 197, 94, 0.15){% else %}rgba(220, 38, 38, 0.15){% endif %}; border-color: {% if category == 'success' %}var(--success){% else %}var(--danger){% endif %};">
+                        <strong>{{ message }}</strong>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="glass-card glass-card-3d stat-card">
+                    <div class="stat-card-inner">
+                        <div class="stat-info">
+                            <h3>Total Tasks</h3>
+                            <div class="stat-value">{{ all_count }}</div>
+                        </div>
+                        <div class="stat-icon cyan">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card glass-card-3d stat-card">
+                    <div class="stat-card-inner">
+                        <div class="stat-info">
+                            <h3>Completed</h3>
+                            <div class="stat-value">{{ complete_count }}</div>
+                            <span class="stat-change positive">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Done
+                            </span>
+                        </div>
+                        <div class="stat-icon success">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card glass-card-3d stat-card">
+                    <div class="stat-card-inner">
+                        <div class="stat-info">
+                            <h3>Pending</h3>
+                            <div class="stat-value">{{ incomplete_count }}</div>
+                            <span class="stat-change negative">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Todo
+                            </span>
+                        </div>
+                        <div class="stat-icon magenta">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card glass-card-3d stat-card">
+                    <div class="stat-card-inner">
+                        <div class="stat-info">
+                            <h3>Completion</h3>
+                            <div class="stat-value">{% if all_count > 0 %}{{ ((complete_count / all_count) * 100)|round|int }}%{% else %}0%{% endif %}</div>
+                        </div>
+                        <div class="stat-icon purple">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add New Task Card -->
+            <div class="glass-card glass-card-3d" style="margin-bottom: 30px;">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">➕ Add New Task</h2>
+                        <p class="card-subtitle">Create a new task for your study plan</p>
+                    </div>
+                </div>
+                <form action="{{ url_for('add_task') }}" method="POST">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <input type="text" name="title" placeholder="Task title..." required 
+                               style="padding: 12px 16px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text-primary); font-family: inherit; font-size: 14px;">
+                        <input type="text" name="description" placeholder="Description..." 
+                               style="padding: 12px 16px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text-primary); font-family: inherit; font-size: 14px;">
+                        <select name="priority" 
+                                style="padding: 12px 16px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text-primary); font-family: inherit; font-size: 14px;">
+                            <option value="low">🟢 Low Priority</option>
+                            <option value="medium" selected>🟡 Medium Priority</option>
+                            <option value="high">🔴 High Priority</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Add Task
+                    </button>
+                </form>
+            </div>
+
+            <!-- Tasks Table -->
+            <div class="glass-card glass-card-3d table-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">📋 Your Tasks</h2>
+                        <p class="card-subtitle">Manage your study tasks</p>
+                    </div>
+                    <div class="card-actions">
+                        <a href="{{ url_for('dashboard', status='all') }}" class="card-btn {% if filter_status == 'all' %}active{% endif %}">All</a>
+                        <a href="{{ url_for('dashboard', status='complete') }}" class="card-btn {% if filter_status == 'complete' %}active{% endif %}">Complete</a>
+                        <a href="{{ url_for('dashboard', status='incomplete') }}" class="card-btn {% if filter_status == 'incomplete' %}active{% endif %}">Pending</a>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Task</th>
+                                <th>Description</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if tasks %}
+                                {% for task in tasks %}
+                                <tr>
+                                    <td>{{ task.id }}</td>
+                                    <td><strong style="color: var(--text-primary);">{{ task.title }}</strong></td>
+                                    <td>{{ task.description or 'No description' }}</td>
+                                    <td>
+                                        <span class="priority-badge {{ task.priority }}">
+                                            {{ task.priority|upper }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge {{ task.status }}">
+                                            {{ task.status|upper }}
+                                        </span>
+                                    </td>
+                                    <td>{{ task.created_at.strftime('%b %d, %Y') }}</td>
+                                    <td>
+                                        <div style="display: flex; gap: 8px;">
+                                            <a href="{{ url_for('toggle_task', task_id=task.id) }}" 
+                                               style="padding: 6px 12px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; font-size: 12px; transition: all 0.2s;" 
+                                               title="Toggle Status">
+                                                {% if task.status == 'complete' %}❌{% else %}✅{% endif %}
+                                            </a>
+                                            <a href="{{ url_for('delete_task', task_id=task.id) }}" 
+                                               style="padding: 6px 12px; background: rgba(220, 38, 38, 0.15); border: 1px solid var(--danger); color: var(--danger); border-radius: 8px; font-size: 12px; transition: all 0.2s;" 
+                                               onclick="return confirm('Delete this task?')"
+                                               title="Delete">
+                                                🗑️
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                        <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto 15px;">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                        </svg>
+                                        <br>
+                                        No tasks found. Create your first task above!
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <script>
-        function toggleTheme() {
-            const html = document.documentElement;
-            const theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-        }
-        document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
-    </script>
+    <script src="{{ url_for('static', filename='templatemo-glass-admin-script.js') }}"></script>
 </body>
 </html>
