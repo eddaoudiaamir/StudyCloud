@@ -126,13 +126,25 @@ def dashboard():
     complete_count = Task.query.filter_by(user_id=current_user.id, status='complete').count()
     incomplete_count = Task.query.filter_by(user_id=current_user.id, status='incomplete').count()
     
+    # Add missing variables
+    upcoming = []
+    recent_activities = []
+    streak = 0
+    weekly_rate = (complete_count / all_count * 100) if all_count > 0 else 0
+    completion_data = [0, 0, 0, 0, 0, 0, 0]
+    
     return render_template('dashboard.html', 
                          tasks=tasks,
                          filter_status=filter_status,
                          filter_priority=filter_priority,
                          all_count=all_count,
                          complete_count=complete_count,
-                         incomplete_count=incomplete_count)
+                         incomplete_count=incomplete_count,
+                         upcoming=upcoming,
+                         recent_activities=recent_activities,
+                         streak=streak,
+                         weekly_rate=weekly_rate,
+                         completion_data=completion_data)
 
 @app.route('/add_task', methods=['POST'])
 @login_required
@@ -227,3 +239,4 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
