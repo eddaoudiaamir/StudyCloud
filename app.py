@@ -4,7 +4,6 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from datetime import datetime, timedelta
-from sqlalchemy import inspect, text
 import json
 
 app = Flask(__name__)
@@ -30,10 +29,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
-    status = db.Column(db.String(20), default='active')
-    last_active = db.Column(db.DateTime, default=datetime.utcnow)
     tasks = db.relationship('Task', backref='owner', lazy=True, cascade='all, delete-orphan')
-    activities = db.relationship('Activity', backref='user', lazy=True, cascade='all, delete-orphan')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -50,7 +46,6 @@ class Task(db.Model):
     priority = db.Column(db.String(20), default='medium')
     tags = db.Column(db.Text)
     due_date = db.Column(db.DateTime, nullable=True)
-    time_spent = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     completed_at = db.Column(db.DateTime, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -66,22 +61,10 @@ class Task(db.Model):
     def set_tags(self, tags_list):
         self.tags = json.dumps(tags_list)
 
-class Activity(db.Model):
-    __tablename__ = 'activities'
-    id = db.Column(db.Integer, primary_key=True)
-    action = db.Column(db.String(200), nullable=False)
-    task_title = db.Column(db.String(200))
-    icon_type = db.Column(db.String(20), default='info')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-
 # Database setup
 with app.app_context():
-    try:
-        db.create_all()
-        print('✅ Database created!')
-    except Exception as e:
-        print(f'Database error: {e}')
+    db.create_all()
+    print('✅ Database ready!')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -89,26 +72,6 @@ def load_user(user_id):
         return db.session.get(User, int(user_id))
     except:
         return None
-
-def log_activity(action, task_title=None, icon_type='info'):
-    try:
-        if current_user.is_authenticated:
-            activity = Activity(action=action, task_title=task_title, icon_type=icon_type, user_id=current_user.id)
-            db.session.add(activity)
-            db.session.commit()
-    except:
-        pass
-
-def calculate_streak():
-    try:
-        if not current_user.is_authenticated:
-            return 0
-        completed = Task.query.filter_by(user_id=current_user.id, status='complete').order_by(Task.completed_at.desc()).all()
-        if not completed:
-            return 0
-        return len([t for t in completed if t.completed_at and (datetime.utcnow() - t.completed_at).days < 1])
-    except:
-        return 0
 
 # Routes
 @app.route('/')
@@ -119,7 +82,6 @@ def index():
 
 @app.route('/auth', methods=['GET', 'POST'])
 def auth():
-    # Handle POST (login)
     if request.method == 'POST':
         action = request.form.get('action')
         
@@ -130,10 +92,6 @@ def auth():
             
             if User.query.filter_by(username=username).first():
                 flash('Username already exists!', 'danger')
-                return redirect(url_for('auth'))
-            
-            if User.query.filter_by(email=email).first():
-                flash('Email already registered!', 'danger')
                 return redirect(url_for('auth'))
             
             user = User(username=username, email=email)
@@ -152,13 +110,11 @@ def auth():
             
             if user and user.check_password(password):
                 login_user(user)
-                log_activity("Logged in", icon_type='info')
                 return redirect(url_for('dashboard'))
             else:
                 flash('Invalid username or password!', 'danger')
                 return redirect(url_for('auth'))
     
-    # Handle GET (show login page)
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     
@@ -167,49 +123,45 @@ def auth():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    try:
-        filter_status = request.args.get('status', 'all')
-        
-        query = Task.query.filter_by(user_id=current_user.id)
-        if filter_status != 'all':
-            query = query.filter_by(status=filter_status)
-        
-        tasks = query.order_by(Task.created_at.desc()).all()
-        
-        all_count = Task.query.filter_by(user_id=current_user.id).count()
-        complete_count = Task.query.filter_by(user_id=current_user.id, status='complete').count()
-        incomplete_count = Task.query.filter_by(user_id=current_user.id, status='incomplete').count()
-        
-        upcoming = Task.query.filter_by(user_id=current_user.id, status='incomplete').filter(Task.due_date.isnot(None)).order_by(Task.due_date.asc()).limit(5).all()
-        recent_activities = Activity.query.filter_by(user_id=current_user.id).order_by(Activity.created_at.desc()).limit(5).all()
-        
-        streak = calculate_streak()
-        weekly_rate = (complete_count / all_count * 100) if all_count > 0 else 0
-        completion_data = [0, 0, 0, 0, 0, 0, 0]
-        
-        return render_template('dashboard.html', 
-                             tasks=tasks, 
-                             filter_status=filter_status,
-                             filter_priority='all',
-                             all_count=all_count,
-                             complete_count=complete_count,
-                             incomplete_count=incomplete_count,
-                             upcoming=upcoming,
-                             recent_activities=recent_activities,
-                             streak=streak,
-                             weekly_rate=weekly_rate,
-                             completion_data=completion_data)
-    except Exception as e:
-        print(f"Error: {e}")
-        flash('Error loading dashboard', 'danger')
-        logout_user()
-        return redirect(url_for('auth'))
+    filter_status = request.args.get('status', 'all')
+    
+    query = Task.query.filter_by(user_id=current_user.id)
+    if filter_status != 'all':
+        query = query.filter_by(status=filter_status)
+    
+    tasks = query.order_by(Task.created_at.desc()).all()
+    
+    all_count = Task.query.filter_by(user_id=current_user.id).count()
+    complete_count = Task.query.filter_by(user_id=current_user.id, status='complete').count()
+    incomplete_count = Task.query.filter_by(user_id=current_user.id, status='incomplete').count()
+    
+    upcoming = Task.query.filter_by(user_id=current_user.id, status='incomplete').filter(Task.due_date.isnot(None)).order_by(Task.due_date.asc()).limit(5).all()
+    
+    # Empty activity list for now
+    recent_activities = []
+    
+    streak = 0
+    weekly_rate = (complete_count / all_count * 100) if all_count > 0 else 0
+    completion_data = [0, 0, 0, 0, 0, 0, 0]
+    
+    return render_template('dashboard.html', 
+                         tasks=tasks, 
+                         filter_status=filter_status,
+                         filter_priority='all',
+                         all_count=all_count,
+                         complete_count=complete_count,
+                         incomplete_count=incomplete_count,
+                         upcoming=upcoming,
+                         recent_activities=recent_activities,
+                         streak=streak,
+                         weekly_rate=weekly_rate,
+                         completion_data=completion_data)
 
 @app.route('/add_task', methods=['POST'])
 @login_required
 def add_task():
     title = request.form.get('title')
-    description = request.form.get('description')
+    description = request.form.get('description', '')
     priority = request.form.get('priority', 'medium')
     due_date_str = request.form.get('due_date')
     tags_str = request.form.get('tags', '')
@@ -228,7 +180,6 @@ def add_task():
     db.session.add(task)
     db.session.commit()
     
-    log_activity("Created new task", task_title=title, icon_type='info')
     flash('Task added successfully!', 'success')
     return redirect(url_for('dashboard'))
 
@@ -244,11 +195,9 @@ def toggle_task(task_id):
     if task.status == 'incomplete':
         task.status = 'complete'
         task.completed_at = datetime.utcnow()
-        log_activity("Completed task", task_title=task.title, icon_type='success')
     else:
         task.status = 'incomplete'
         task.completed_at = None
-        log_activity("Reopened task", task_title=task.title, icon_type='warning')
     
     db.session.commit()
     return redirect(url_for('dashboard'))
@@ -262,11 +211,9 @@ def delete_task(task_id):
         flash('Unauthorized!', 'danger')
         return redirect(url_for('dashboard'))
     
-    task_title = task.title
     db.session.delete(task)
     db.session.commit()
     
-    log_activity("Deleted task", task_title=task_title, icon_type='warning')
     flash('Task deleted!', 'success')
     return redirect(url_for('dashboard'))
 
@@ -303,15 +250,10 @@ def admin():
     users = User.query.all()
     tasks = Task.query.all()
     
+    # Set default status for users
     for user in users:
-        if user.last_active:
-            time_diff = datetime.utcnow() - user.last_active
-            if time_diff < timedelta(minutes=5):
-                user.status = 'active'
-            elif time_diff < timedelta(hours=1):
-                user.status = 'away'
-            else:
-                user.status = 'offline'
+        user.status = 'active'
+        user.last_active = datetime.utcnow()
     
     total_users = len(users)
     total_tasks = len(tasks)
@@ -327,7 +269,6 @@ def admin():
 @app.route('/logout')
 @login_required
 def logout():
-    log_activity("Logged out", icon_type='info')
     logout_user()
     return redirect(url_for('auth'))
 
