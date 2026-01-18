@@ -206,14 +206,20 @@ def calculate_streak():
 # Routes
 @app.route('/')
 def index():
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
-    return redirect(url_for('auth'))
+    try:
+        if current_user.is_authenticated:
+            return redirect(url_for('dashboard'))
+        return redirect(url_for('auth'))
+    except:
+        return redirect(url_for('auth'))
 
 @app.route('/auth')
 def auth():
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
+    try:
+        if current_user.is_authenticated:
+            return redirect(url_for('dashboard'))
+    except:
+        pass
     return render_template('auth.html')
 
 @app.route('/register', methods=['POST'])
@@ -455,3 +461,4 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
