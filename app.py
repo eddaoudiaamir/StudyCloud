@@ -12,7 +12,7 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-i
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///studycloud.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Fix for Render's postgres:// URL
+# Fix for Render's postgres:// URL (needs postgresql://)
 if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
     app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql://', 1)
 
@@ -184,6 +184,29 @@ def delete_task(task_id):
 def logout():
     logout_user()
     return redirect(url_for('auth'))
+
+@app.route('/admin')
+@login_required
+def admin():
+    # Only admin user can access
+    if current_user.username != 'admin':
+        flash('Access denied! Admin only.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    users = User.query.all()
+    tasks = Task.query.all()
+    
+    # Calculate stats
+    total_users = len(users)
+    total_tasks = len(tasks)
+    completed_tasks = Task.query.filter_by(status='complete').count()
+    
+    return render_template('admin.html', 
+                         users=users, 
+                         tasks=tasks,
+                         total_users=total_users,
+                         total_tasks=total_tasks,
+                         completed_tasks=completed_tasks)
 
 if __name__ == '__main__':
     app.run(debug=True)
