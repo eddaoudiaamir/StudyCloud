@@ -11,8 +11,6 @@
             --bg-card: #ffffff;
             --text-primary: #333333;
             --text-secondary: #666666;
-            --border-color: #e0e0e0;
-            --shadow: rgba(0, 0, 0, 0.1);
         }
 
         [data-theme="dark"] {
@@ -21,23 +19,18 @@
             --bg-card: #1a1a1f;
             --text-primary: #ffffff;
             --text-secondary: #c0b9c0;
-            --border-color: #2a2a2f;
-            --shadow: rgba(0, 0, 0, 0.5);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             background: var(--bg-secondary);
             color: var(--text-primary);
             min-height: 100vh;
-            transition: background 0.3s, color 0.3s;
-            position: relative;
-            overflow-x: hidden;
         }
 
-        /* ANIMATED BACKGROUND SHAPES */
+        /* MOVING SHAPES */
         .shapes {
             position: fixed;
             top: 0;
@@ -53,8 +46,7 @@
             position: absolute;
             border-radius: 50%;
             filter: blur(80px);
-            opacity: 0.5;
-            animation: float 20s infinite ease-in-out;
+            opacity: 0.4;
         }
 
         .shape1 {
@@ -63,7 +55,7 @@
             background: linear-gradient(135deg, #667eea, #764ba2);
             top: -100px;
             left: -100px;
-            animation-duration: 25s;
+            animation: float1 25s infinite ease-in-out;
         }
 
         .shape2 {
@@ -72,8 +64,7 @@
             background: linear-gradient(135deg, #f093fb, #f5576c);
             top: 50%;
             right: -100px;
-            animation-duration: 30s;
-            animation-delay: 5s;
+            animation: float2 30s infinite ease-in-out;
         }
 
         .shape3 {
@@ -82,550 +73,234 @@
             background: linear-gradient(135deg, #4facfe, #00f2fe);
             bottom: -100px;
             left: 20%;
-            animation-duration: 35s;
-            animation-delay: 10s;
+            animation: float3 35s infinite ease-in-out;
         }
 
-        .shape4 {
-            width: 250px;
-            height: 250px;
-            background: linear-gradient(135deg, #43e97b, #38f9d7);
-            top: 30%;
-            left: 50%;
-            animation-duration: 28s;
-            animation-delay: 3s;
+        @keyframes float1 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(100px, 100px); }
         }
 
-        .shape5 {
-            width: 200px;
-            height: 200px;
-            background: linear-gradient(135deg, #fa709a, #fee140);
-            bottom: 20%;
-            right: 30%;
-            animation-duration: 32s;
-            animation-delay: 7s;
+        @keyframes float2 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-150px, 150px); }
         }
 
-        @keyframes float {
-            0%, 100% {
-                transform: translate(0, 0) rotate(0deg) scale(1);
-            }
-            25% {
-                transform: translate(100px, -100px) rotate(90deg) scale(1.1);
-            }
-            50% {
-                transform: translate(-50px, 150px) rotate(180deg) scale(0.9);
-            }
-            75% {
-                transform: translate(150px, 50px) rotate(270deg) scale(1.05);
-            }
+        @keyframes float3 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(120px, -120px); }
         }
 
         .header {
             background: linear-gradient(135deg, #402fb5 0%, #cf30aa 100%);
             color: white;
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px var(--shadow);
+            padding: 20px;
             position: relative;
             z-index: 10;
         }
 
-        .header h1 { font-size: 1.8em; }
-
-        .user-info {
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 15px;
             flex-wrap: wrap;
+            gap: 15px;
         }
 
-        /* ANIMATED THEME TOGGLE */
-        .theme-toggle {
-            user-select: none;
-            position: relative;
-            border-radius: 100px;
+        .theme-toggle, .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
             color: white;
-            font-weight: 600;
-            font-size: 1.2em;
-            padding: 10px 15px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            cursor: pointer;
-            background: rgba(0, 0, 0, 0.2);
-            transition: all 0.16s ease-out;
-        }
-
-        .theme-toggle:hover {
-            transform: scale(1.1);
-        }
-
-        .theme-toggle:active {
-            scale: 0.95;
-        }
-
-        /* ANIMATED LOGOUT */
-        .logout-btn {
-            user-select: none;
-            position: relative;
-            border-radius: 100px;
-            color: white;
-            font-weight: 600;
             padding: 10px 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
             cursor: pointer;
-            background: rgba(0, 0, 0, 0.2);
-            transition: all 0.16s ease-out;
+            font-weight: 600;
+        }
+
+        .theme-toggle:hover, .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .logout-btn {
             text-decoration: none;
-            display: inline-block;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .logout-btn:active {
-            scale: 0.95;
         }
 
         .container {
             max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
+            margin: 20px auto;
+            padding: 20px;
             position: relative;
             z-index: 1;
         }
 
-        /* TABS */
-        .tabs {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
+        .card {
             background: var(--bg-card);
             padding: 20px;
             border-radius: 15px;
-            box-shadow: 0 2px 10px var(--shadow);
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .tab {
-            user-select: none;
-            position: relative;
-            padding: 15px 30px;
-            border-radius: 100px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: 50px;
             text-decoration: none;
-            color: var(--text-secondary);
-            background: var(--bg-secondary);
-            border: 2px solid transparent;
-            white-space: nowrap;
+            color: var(--text-primary);
+            background: var(--bg-card);
+            border: 2px solid #ccc;
+            font-weight: 600;
         }
 
-        .tab:active {
-            scale: 0.97;
-        }
-
-        /* Blue Tab */
-        .tab.all {
+        .tab.active {
             border-color: #667eea;
-        }
-
-        .tab.all.active {
-            background: var(--bg-card);
+            background: #667eea;
             color: white;
-            border: none;
-        }
-
-        .tab.all.active::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: inherit;
-            background: conic-gradient(from 0deg, #667eea, #764ba2, #667eea);
-            animation: spin 3s linear infinite;
-            z-index: -1;
-        }
-
-        /* Yellow Tab */
-        .tab.incomplete {
-            border-color: #ffc107;
-        }
-
-        .tab.incomplete.active {
-            background: var(--bg-card);
-            color: white;
-            border: none;
-        }
-
-        .tab.incomplete.active::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: inherit;
-            background: conic-gradient(from 0deg, #ffc107, #ff9800, #ffc107);
-            animation: spin 3s linear infinite;
-            z-index: -1;
-        }
-
-        /* Green Tab */
-        .tab.complete {
-            border-color: #28a745;
-        }
-
-        .tab.complete.active {
-            background: var(--bg-card);
-            color: white;
-            border: none;
-        }
-
-        .tab.complete.active::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: inherit;
-            background: conic-gradient(from 0deg, #28a745, #20c997, #28a745);
-            animation: spin 3s linear infinite;
-            z-index: -1;
-        }
-
-        @keyframes spin {
-            to { rotate: 360deg; }
-        }
-
-        .tab:hover:not(.active) {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px var(--shadow);
-        }
-
-        /* FILTERS */
-        .filter-section {
-            background: var(--bg-card);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-            box-shadow: 0 2px 10px var(--shadow);
-        }
-
-        .filter-btn {
-            user-select: none;
-            position: relative;
-            padding: 10px 25px;
-            border-radius: 100px;
-            border: 2px solid var(--border-color);
-            background: var(--bg-secondary);
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            color: var(--text-primary);
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .filter-btn:active {
-            scale: 0.95;
-        }
-
-        .filter-btn.active {
-            background: var(--bg-card);
-            color: white;
-            border: none;
-        }
-
-        .filter-btn.priority-all.active::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: inherit;
-            background: conic-gradient(from 0deg, #667eea, #764ba2, #667eea);
-            animation: spin 2s linear infinite;
-            z-index: -1;
-        }
-
-        .filter-btn.priority-high {
-            border-color: #dc3545;
-            color: #dc3545;
-        }
-
-        .filter-btn.priority-high.active {
-            color: white;
-        }
-
-        .filter-btn.priority-high.active::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: inherit;
-            background: conic-gradient(from 0deg, #dc3545, #c82333, #dc3545);
-            animation: spin 2s linear infinite;
-            z-index: -1;
-        }
-
-        .filter-btn.priority-medium {
-            border-color: #ffc107;
-            color: #e0a800;
-        }
-
-        .filter-btn.priority-medium.active {
-            color: white;
-        }
-
-        .filter-btn.priority-medium.active::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: inherit;
-            background: conic-gradient(from 0deg, #ffc107, #ff9800, #ffc107);
-            animation: spin 2s linear infinite;
-            z-index: -1;
-        }
-
-        .filter-btn.priority-low {
-            border-color: #28a745;
-            color: #28a745;
-        }
-
-        .filter-btn.priority-low.active {
-            color: white;
-        }
-
-        .filter-btn.priority-low.active::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: inherit;
-            background: conic-gradient(from 0deg, #28a745, #20c997, #28a745);
-            animation: spin 2s linear infinite;
-            z-index: -1;
-        }
-
-        .card {
-            background: var(--bg-card);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px var(--shadow);
-            margin-bottom: 30px;
-        }
-
-        .card h2 {
-            color: var(--text-primary);
-            margin-bottom: 20px;
-            font-size: 1.5em;
         }
 
         input, textarea, select {
             width: 100%;
             padding: 12px;
             margin: 10px 0;
-            border: 2px solid var(--border-color);
+            border: 2px solid #ddd;
             border-radius: 8px;
-            font-size: 1em;
-            font-family: inherit;
             background: var(--bg-secondary);
             color: var(--text-primary);
         }
 
-        select {
-            cursor: pointer;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        /* ANIMATED SUBMIT BUTTON */
-        .btn-animated {
-            user-select: none;
-            position: relative;
-            border-radius: 100px;
-            color: var(--text-primary);
-            font-weight: 600;
-            font-size: 1rem;
-            padding: 12px 40px;
-            border: none;
-            cursor: pointer;
-            background: var(--bg-card);
-            transition: all 0.16s ease-out;
+        button {
             width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #402fb5, #cf30aa);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
             margin-top: 10px;
         }
 
-        .btn-animated:active {
-            translate: 0 1px;
-            scale: 0.99;
-        }
-
-        .btn-animated::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: inherit;
-            background: conic-gradient(from 0deg, #402fb5, #cf30aa, #402fb5);
-            animation: spin 2s linear infinite;
-            z-index: -1;
+        button:hover {
+            opacity: 0.9;
         }
 
         .task {
             background: var(--bg-secondary);
-            padding: 20px;
-            margin: 15px 0;
+            padding: 15px;
+            margin: 10px 0;
             border-radius: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 20px;
-            border-left: 4px solid #667eea;
-            transition: all 0.3s;
-            flex-wrap: wrap;
-        }
-
-        .task:hover {
-            box-shadow: 0 4px 12px var(--shadow);
-            transform: translateY(-2px);
-        }
-
-        .task.complete {
-            opacity: 0.7;
-            border-left-color: #28a745;
-        }
-
-        .task.complete .task-title {
-            text-decoration: line-through;
-            color: var(--text-secondary);
-        }
-
-        .task.priority-high { border-left-color: #dc3545; }
-        .task.priority-medium { border-left-color: #ffc107; }
-        .task.priority-low { border-left-color: #28a745; }
-
-        .task-info {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .task-title {
-            font-size: 1.2em;
-            color: var(--text-primary);
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .task-desc {
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-        }
-
-        .task-meta {
-            display: flex;
             gap: 15px;
-            font-size: 0.9em;
             flex-wrap: wrap;
-        }
-
-        .priority-badge {
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.85em;
-        }
-
-        .priority-badge.high {
-            background: rgba(220, 53, 69, 0.2);
-            color: #dc3545;
-        }
-
-        .priority-badge.medium {
-            background: rgba(255, 193, 7, 0.2);
-            color: #e0a800;
-        }
-
-        .priority-badge.low {
-            background: rgba(40, 167, 69, 0.2);
-            color: #28a745;
         }
 
         .task-actions {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
         }
 
-        /* ACTION BUTTONS */
         .btn-check, .btn-delete {
-            user-select: none;
-            position: relative;
-            padding: 10px 20px;
-            color: white;
+            padding: 8px 16px;
+            border-radius: 50px;
             text-decoration: none;
-            border-radius: 100px;
-            font-size: 0.9em;
+            color: white;
             font-weight: 600;
-            transition: all 0.3s;
-            display: inline-block;
-            background: var(--bg-card);
-            white-space: nowrap;
         }
 
-        .btn-check::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: inherit;
-            background: conic-gradient(from 0deg, #28a745, #20c997, #28a745);
-            animation: spin 2s linear infinite;
-            z-index: -1;
+        .btn-check {
+            background: #28a745;
         }
 
-        .btn-check:active {
-            scale: 0.95;
+        .btn-delete {
+            background: #dc3545;
         }
+    </style>
+</head>
+<body>
+    <div class="shapes">
+        <div class="shape shape1"></div>
+        <div class="shape shape2"></div>
+        <div class="shape shape3"></div>
+    </div>
 
-        .btn-delete::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: inherit;
-            background: conic-gradient(from 0deg, #dc3545, #c82333, #dc3545);
-            animation: spin 2s linear infinite;
-            z-index: -1;
+    <div class="header">
+        <div class="header-content">
+            <h1>📚 StudyCloud</h1>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+                <span>{{ current_user.username }}</span>
+                <a href="/logout" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="tabs">
+            <a href="/dashboard?status=all" class="tab {% if filter_status == 'all' %}active{% endif %}">All</a>
+            <a href="/dashboard?status=incomplete" class="tab {% if filter_status == 'incomplete' %}active{% endif %}">In Progress</a>
+            <a href="/dashboard?status=complete" class="tab {% if filter_status == 'complete' %}active{% endif %}">Completed</a>
+        </div>
+        
+        <div class="card">
+            <h2>Add Task</h2>
+            <form method="POST" action="/add_task">
+                <input type="text" name="title" placeholder="Task Title" required>
+                <textarea name="description" placeholder="Description" rows="3"></textarea>
+                <select name="priority" required>
+                    <option value="low">Low Priority</option>
+                    <option value="medium" selected>Medium Priority</option>
+                    <option value="high">High Priority</option>
+                </select>
+                <button type="submit">Add Task</button>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h2>Your Tasks ({{ tasks|length }})</h2>
+            {% for task in tasks %}
+                <div class="task">
+                    <div>
+                        <h3>{{ task.title }}</h3>
+                        <p>{{ task.description }}</p>
+                        <small>{{ task.priority }} - {{ task.created_at.strftime('%b %d') }}</small>
+                    </div>
+                    <div class="task-actions">
+                        <a href="/toggle_task/{{ task.id }}" class="btn-check">✓</a>
+                        <a href="/delete_task/{{ task.id }}" class="btn-delete">×</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
         }
-
-        .btn-delete:active {
-            scale: 0.95;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-secondary);
-        }
-
-        .empty-state .emoji {
-            font-size: 4em;
-            margin-bottom: 20px;
-        }
-
-        .stats {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            padding: 20px;
-            border-radius: 10px;
-            flex: 1;
-            min-width: 200px;
-            box-shadow: 0 2px 10px var(--shadow);
-        }
-
-        .s
+        document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
+    </script>
+</body>
+</html>
