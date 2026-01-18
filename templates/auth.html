@@ -1,373 +1,404 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - StudyCloud</title>
+    <title>StudyCloud - Login & Register</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .header h1 { font-size: 1.8em; }
-        .user-info {
             display: flex;
             align-items: center;
-            gap: 20px;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
         }
-        .logout-btn {
-            background: rgba(255,255,255,0.2);
+
+        /* ❄️ SNOW EFFECT */
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            z-index: 9999;
+            user-select: none;
+            cursor: default;
+            animation-name: snowfall;
+            animation-duration: 10s;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
             color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            text-decoration: none;
-            transition: background 0.3s;
+            font-size: 1em;
+            opacity: 0.8;
         }
-        .logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+        @keyframes snowfall {
+            0% {
+                transform: translateY(0vh) rotate(0deg);
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        .snowflake:nth-child(1) { left: 1%; animation-delay: 0s; animation-duration: 6s; }
+        .snowflake:nth-child(2) { left: 10%; animation-delay: 1s; animation-duration: 8s; }
+        .snowflake:nth-child(3) { left: 20%; animation-delay: 0.5s; animation-duration: 7s; }
+        .snowflake:nth-child(4) { left: 30%; animation-delay: 2s; animation-duration: 9s; }
+        .snowflake:nth-child(5) { left: 40%; animation-delay: 1.5s; animation-duration: 6.5s; }
+        .snowflake:nth-child(6) { left: 50%; animation-delay: 3s; animation-duration: 7.5s; }
+        .snowflake:nth-child(7) { left: 60%; animation-delay: 2.5s; animation-duration: 8.5s; }
+        .snowflake:nth-child(8) { left: 70%; animation-delay: 1s; animation-duration: 9.5s; }
+        .snowflake:nth-child(9) { left: 80%; animation-delay: 0s; animation-duration: 7s; }
+        .snowflake:nth-child(10) { left: 90%; animation-delay: 1.5s; animation-duration: 8s; }
+        .snowflake:nth-child(11) { left: 5%; animation-delay: 0.2s; animation-duration: 6.8s; }
+        .snowflake:nth-child(12) { left: 15%; animation-delay: 1.8s; animation-duration: 9.2s; }
+        .snowflake:nth-child(13) { left: 25%; animation-delay: 0.8s; animation-duration: 7.3s; }
+        .snowflake:nth-child(14) { left: 35%; animation-delay: 2.2s; animation-duration: 8.7s; }
+        .snowflake:nth-child(15) { left: 45%; animation-delay: 1.3s; animation-duration: 6.9s; }
+        .snowflake:nth-child(16) { left: 55%; animation-delay: 3.5s; animation-duration: 7.8s; }
+        .snowflake:nth-child(17) { left: 65%; animation-delay: 2.8s; animation-duration: 9.1s; }
+        .snowflake:nth-child(18) { left: 75%; animation-delay: 0.7s; animation-duration: 8.3s; }
+        .snowflake:nth-child(19) { left: 85%; animation-delay: 1.2s; animation-duration: 7.6s; }
+        .snowflake:nth-child(20) { left: 95%; animation-delay: 2.7s; animation-duration: 9.4s; }
+
         .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
+            position: relative;
+            overflow: hidden;
+            width: 768px;
+            max-width: 100%;
+            min-height: 480px;
+            z-index: 1;
         }
-        .tabs {
+
+        .container.active .sign-in {
+            transform: translateX(100%);
+        }
+
+        .container.active .sign-up {
+            transform: translateX(100%);
+            opacity: 1;
+            z-index: 5;
+            animation: move 0.6s;
+        }
+
+        @keyframes move {
+            0%, 49.99% {
+                opacity: 0;
+                z-index: 1;
+            }
+            50%, 100% {
+                opacity: 1;
+                z-index: 5;
+            }
+        }
+
+        .form-container {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            transition: all 0.6s ease-in-out;
+        }
+
+        .sign-in {
+            left: 0;
+            width: 50%;
+            z-index: 2;
+        }
+
+        .sign-up {
+            left: 0;
+            width: 50%;
+            opacity: 0;
+            z-index: 1;
+        }
+
+        form {
+            background: transparent;
             display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        .tab {
-            background: white;
-            padding: 15px 30px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid transparent;
-            font-weight: 600;
-            text-decoration: none;
-            color: #666;
-        }
-        .tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-        .tab:hover:not(.active) {
-            border-color: #667eea;
-        }
-        .filter-section {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        .filter-btn {
-            padding: 8px 20px;
-            border-radius: 20px;
-            border: 2px solid #e0e0e0;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            color: #666;
-        }
-        .filter-btn.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-        .priority-high { border-color: #dc3545; color: #dc3545; }
-        .priority-high.active { background: #dc3545; color: white; }
-        .priority-medium { border-color: #ffc107; color: #e0a800; }
-        .priority-medium.active { background: #ffc107; color: white; }
-        .priority-low { border-color: #28a745; color: #28a745; }
-        .priority-low.active { background: #28a745; color: white; }
-        .card {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        .card h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-        }
-        input, textarea, select {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1em;
-            font-family: inherit;
-        }
-        select {
-            cursor: pointer;
-        }
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        button {
-            padding: 12px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-        .task {
-            background: #f8f9fa;
-            padding: 20px;
-            margin: 15px 0;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            border-left: 4px solid #667eea;
-            transition: all 0.3s;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0 40px;
+            height: 100%;
         }
-        .task:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
-        .task.complete {
-            opacity: 0.7;
-            border-left-color: #28a745;
-        }
-        .task.complete .task-title {
-            text-decoration: line-through;
-            color: #999;
-        }
-        .task.priority-high { border-left-color: #dc3545; }
-        .task.priority-medium { border-left-color: #ffc107; }
-        .task.priority-low { border-left-color: #28a745; }
-        .task-info {
-            flex: 1;
-        }
-        .task-title {
-            font-size: 1.2em;
+
+        h1 {
+            font-size: 2em;
             color: #333;
-            font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 20px;
         }
-        .task-desc {
-            color: #666;
+
+        .logo {
+            font-size: 3em;
             margin-bottom: 10px;
         }
-        .task-meta {
-            display: flex;
-            gap: 15px;
-            font-size: 0.9em;
+
+        input {
+            background: #eee;
+            border: none;
+            margin: 8px 0;
+            padding: 15px;
+            font-size: 13px;
+            border-radius: 8px;
+            width: 100%;
+            outline: none;
+            transition: all 0.3s;
         }
-        .priority-badge {
-            padding: 4px 12px;
-            border-radius: 12px;
+
+        input:focus {
+            background: #ddd;
+            transform: scale(1.02);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            font-size: 12px;
+            padding: 12px 45px;
+            border: 1px solid transparent;
+            border-radius: 8px;
             font-weight: 600;
-            font-size: 0.85em;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
         }
-        .priority-badge.high {
-            background: #fee;
-            color: #dc3545;
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
-        .priority-badge.medium {
-            background: #fff3cd;
-            color: #e0a800;
+
+        button.hidden {
+            background: transparent;
+            border-color: #fff;
         }
-        .priority-badge.low {
-            background: #d4edda;
-            color: #28a745;
+
+        button.hidden:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
-        .task-actions {
+
+        .toggle-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            transition: all 0.6s ease-in-out;
+            border-radius: 150px 0 0 100px;
+            z-index: 1000;
+        }
+
+        .container.active .toggle-container {
+            transform: translateX(-100%);
+            border-radius: 0 150px 100px 0;
+        }
+
+        .toggle {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            color: #fff;
+            position: relative;
+            left: -100%;
+            height: 100%;
+            width: 200%;
+            transform: translateX(0);
+            transition: all 0.6s ease-in-out;
+        }
+
+        .container.active .toggle {
+            transform: translateX(50%);
+        }
+
+        .toggle-panel {
+            position: absolute;
+            width: 50%;
+            height: 100%;
             display: flex;
-            gap: 10px;
-        }
-        .btn-check {
-            background: #28a745;
-            padding: 10px 20px;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 0.9em;
-            transition: all 0.3s;
-        }
-        .btn-check:hover {
-            background: #218838;
-        }
-        .btn-delete {
-            background: #dc3545;
-            padding: 10px 20px;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 0.9em;
-            transition: all 0.3s;
-        }
-        .btn-delete:hover {
-            background: #c82333;
-        }
-        .empty-state {
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0 30px;
             text-align: center;
-            padding: 60px 20px;
-            color: #999;
+            top: 0;
+            transform: translateX(0);
+            transition: all 0.6s ease-in-out;
         }
-        .empty-state .emoji { font-size: 4em; margin-bottom: 20px; }
-        .stats {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
+
+        .toggle-left {
+            transform: translateX(-200%);
         }
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            flex: 1;
-            min-width: 200px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+        .container.active .toggle-left {
+            transform: translateX(0);
         }
-        .stat-number {
+
+        .toggle-right {
+            right: 0;
+            transform: translateX(0);
+        }
+
+        .container.active .toggle-right {
+            transform: translateX(200%);
+        }
+
+        .toggle-panel h1 {
+            color: #fff;
             font-size: 2.5em;
-            font-weight: bold;
-            color: #667eea;
         }
-        .stat-label {
-            color: #666;
-            margin-top: 5px;
+
+        .toggle-panel p {
+            font-size: 14px;
+            line-height: 20px;
+            letter-spacing: 0.3px;
+            margin: 20px 0;
+        }
+
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            z-index: 10000;
+            animation: slideIn 0.3s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                min-height: 600px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>📚 StudyCloud Dashboard</h1>
-        <div class="user-info">
-            <span>Welcome, <strong>{{ current_user.username }}</strong>!</span>
-            <a href="/logout" class="logout-btn">Logout</a>
-        </div>
-    </div>
-    
-    <div class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+    <!-- ❄️ SNOWFLAKES -->
+    <div class="snowflake">❄</div>
+    <div class="snowflake">❅</div>
+    <div class="snowflake">❆</div>
+    <div class="snowflake">❄</div>
+    <div class="snowflake">❅</div>
+    <div class="snowflake">❆</div>
+    <div class="snowflake">❄</div>
+    <div class="snowflake">❅</div>
+    <div class="snowflake">❆</div>
+    <div class="snowflake">❄</div>
+    <div class="snowflake">❅</div>
+    <div class="snowflake">❆</div>
+    <div class="snowflake">❄</div>
+    <div class="snowflake">❅</div>
+    <div class="snowflake">❆</div>
+    <div class="snowflake">❄</div>
+    <div class="snowflake">❅</div>
+    <div class="snowflake">❆</div>
+    <div class="snowflake">❄</div>
+    <div class="snowflake">❅</div>
 
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number">{{ all_count }}</div>
-                <div class="stat-label">Total Tasks</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ complete_count }}</div>
-                <div class="stat-label">Completed</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ incomplete_count }}</div>
-                <div class="stat-label">In Progress</div>
-            </div>
-        </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
-        <div class="tabs">
-            <a href="/dashboard?status=all&priority={{ filter_priority }}" class="tab {% if filter_status == 'all' %}active{% endif %}">
-                📋 All Tasks
-            </a>
-            <a href="/dashboard?status=incomplete&priority={{ filter_priority }}" class="tab {% if filter_status == 'incomplete' %}active{% endif %}">
-                ⏳ In Progress
-            </a>
-            <a href="/dashboard?status=complete&priority={{ filter_priority }}" class="tab {% if filter_status == 'complete' %}active{% endif %}">
-                ✅ Completed
-            </a>
-        </div>
-
-        <div class="filter-section">
-            <strong style="color: #666; display: flex; align-items: center;">Priority Filter:</strong>
-            <a href="/dashboard?status={{ filter_status }}&priority=all" 
-               class="filter-btn {% if filter_priority == 'all' %}active{% endif %}">
-                All
-            </a>
-            <a href="/dashboard?status={{ filter_status }}&priority=high" 
-               class="filter-btn priority-high {% if filter_priority == 'high' %}active{% endif %}">
-                🔴 High
-            </a>
-            <a href="/dashboard?status={{ filter_status }}&priority=medium" 
-               class="filter-btn priority-medium {% if filter_priority == 'medium' %}active{% endif %}">
-                🟡 Medium
-            </a>
-            <a href="/dashboard?status={{ filter_status }}&priority=low" 
-               class="filter-btn priority-low {% if filter_priority == 'low' %}active{% endif %}">
-                🟢 Low
-            </a>
-        </div>
-        
-        <div class="card">
-            <h2>➕ Add New Task</h2>
-            <form method="POST" action="/add_task">
-                <input type="text" name="title" placeholder="Task Title" required>
-                <textarea name="description" placeholder="Task Description" rows="3"></textarea>
-                <select name="priority" required>
-                    <option value="low">🟢 Low Priority</option>
-                    <option value="medium" selected>🟡 Medium Priority</option>
-                    <option value="high">🔴 High Priority</option>
-                </select>
-                <button type="submit">Add Task</button>
+    <div class="container" id="container">
+        <div class="form-container sign-up">
+            <form action="/register" method="POST">
+                <div class="logo">📚</div>
+                <h1>Create Account</h1>
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="password" name="password" placeholder="Password" required minlength="6">
+                <button type="submit">Sign Up</button>
             </form>
         </div>
-        
-        <div class="card">
-            <h2>📖 Your Tasks ({{ tasks|length }})</h2>
-            {% if tasks %}
-                {% for task in tasks %}
-                    <div class="task {% if task.status == 'complete' %}complete{% endif %} priority-{{ task.priority }}">
-                        <div class="task-info">
-                            <div class="task-title">{{ task.title }}</div>
-                            <div class="task-desc">{{ task.description or 'No description' }}</div>
-                            <div class="task-meta">
-                                <span class="priority-badge {{ task.priority }}">{{ task.priority|upper }}</span>
-                                <span style="color: #999;">{{ task.created_at.strftime('%b %d, %Y') }}</span>
-                            </div>
-                        </div>
-                        <div class="task-actions">
-                            <a href="/toggle_task/{{ task.id }}" class="btn-check">
-                                {% if task.status == 'complete' %}↩️ Undo{% else %}✓ Done{% endif %}
-                            </a>
-                            <a href="/delete_task/{{ task.id }}" class="btn-delete" onclick="return confirm('Delete this task?')">Delete</a>
-                        </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <div class="empty-state">
-                    <div class="emoji">📚</div>
-                    <p>No tasks found. Add your first task above!</p>
+
+        <div class="form-container sign-in">
+            <form action="/login" method="POST">
+                <div class="logo">🔐</div>
+                <h1>Sign In</h1>
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <button type="submit">Sign In</button>
+            </form>
+        </div>
+
+        <div class="toggle-container">
+            <div class="toggle">
+                <div class="toggle-panel toggle-left">
+                    <h1>❄️ Welcome Back!</h1>
+                    <p>Enter your personal details to use all of site features</p>
+                    <button class="hidden" id="login">Sign In</button>
                 </div>
-            {% endif %}
+                <div class="toggle-panel toggle-right">
+                    <h1>☃️ Hello, Friend!</h1>
+                    <p>Register with your personal details to use all of site features</p>
+                    <button class="hidden" id="register">Sign Up</button>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+        const container = document.getElementById('container');
+        const registerBtn = document.getElementById('register');
+        const loginBtn = document.getElementById('login');
+
+        registerBtn.addEventListener('click', () => {
+            container.classList.add("active");
+        });
+
+        loginBtn.addEventListener('click', () => {
+            container.classList.remove("active");
+        });
+
+        // Auto-hide alerts after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.style.display = 'none', 300);
+            });
+        }, 5000);
+    </script>
 </body>
 </html>
