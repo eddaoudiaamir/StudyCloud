@@ -4,6 +4,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from datetime import datetime
+from sqlalchemy import inspect
 
 app = Flask(__name__)
 
@@ -43,14 +44,31 @@ class Task(db.Model):
     description = db.Column(db.Text)
     status = db.Column(db.String(20), default='incomplete')
     priority = db.Column(db.String(20), default='medium')
-    due_date = db.Column(db.DateTime, nullable=True)  # NEW: Due date field
+    due_date = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
-# Create tables
+# Database setup with migration
 with app.app_context():
-    db.create_all()
-    print('✅ Database tables created successfully!')
+    # Check if due_date column exists
+    inspector = inspect(db.engine)
+    columns = [column['name'] for column in inspector.get_columns('tasks')]
+    
+    if 'due_date' not in columns:
+        print('⚠️  Migrating database: Adding due_date column...')
+        # Add the due_date column if it doesn't exist
+        with db.engine.connect() as conn:
+            try:
+                conn.execute(db.text('ALTER TABLE tasks ADD COLUMN due_date TIMESTAMP'))
+                conn.commit()
+                print('✅ Database migration successful!')
+            except Exception as e:
+                print(f'❌ Migration error: {e}')
+                print('Creating fresh tables...')
+                db.create_all()
+    else:
+        db.create_all()
+        print('✅ Database tables ready!')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -122,7 +140,7 @@ def dashboard():
     if filter_priority != 'all':
         query = query.filter_by(priority=filter_priority)
     
-    tasks = query.order_by(Task.due_date.asc()).all()
+    tasks = query.order_by(Task.created_at.desc()).all()
     
     # Count tasks
     all_count = Task.query.filter_by(user_id=current_user.id).count()
