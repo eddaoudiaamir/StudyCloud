@@ -176,6 +176,7 @@ def dashboard():
                          completion_data=completion_data,
                          now=datetime.utcnow())
 
+
 @app.route('/add_task', methods=['POST'])
 @login_required
 def add_task():
@@ -292,3 +293,4 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
