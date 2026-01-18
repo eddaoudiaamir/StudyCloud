@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -50,25 +50,23 @@ class Task(db.Model):
 
 # Database setup with migration
 with app.app_context():
-    # Check if due_date column exists
-    inspector = inspect(db.engine)
-    columns = [column['name'] for column in inspector.get_columns('tasks')]
-    
-    if 'due_date' not in columns:
-        print('⚠️  Migrating database: Adding due_date column...')
-        # Add the due_date column if it doesn't exist
-        with db.engine.connect() as conn:
-            try:
-                conn.execute(db.text('ALTER TABLE tasks ADD COLUMN due_date TIMESTAMP'))
-                conn.commit()
-                print('✅ Database migration successful!')
-            except Exception as e:
-                print(f'❌ Migration error: {e}')
-                print('Creating fresh tables...')
-                db.create_all()
-    else:
+    try:
+        inspector = inspect(db.engine)
+        columns = [column['name'] for column in inspector.get_columns('tasks')]
+        if 'due_date' not in columns:
+            print('⚠️ Migrating database: Adding due_date column...')
+            with db.engine.connect() as conn:
+                try:
+                    conn.execute(db.text('ALTER TABLE tasks ADD COLUMN due_date TIMESTAMP'))
+                    conn.commit()
+                    print('✅ Database migration successful!')
+                except Exception as e:
+                    print(f'❌ Migration error: {e}')
         db.create_all()
         print('✅ Database tables ready!')
+    except Exception as e:
+        print(f'Database setup: {e}')
+        db.create_all()
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -76,6 +74,11 @@ def load_user(user_id):
         return db.session.get(User, int(user_id))
     except:
         return None
+
+# Health check (REQUIRED FOR RENDER)
+@app.route('/health')
+def health():
+    return jsonify({"status": "ok"}), 200
 
 # Routes
 @app.route('/')
@@ -148,7 +151,7 @@ def dashboard():
     incomplete_count = Task.query.filter_by(user_id=current_user.id, status='incomplete').count()
     
     return render_template('dashboard.html', 
-                         tasks=tasks, 
+                         tasks=tasks,
                          filter_status=filter_status,
                          filter_priority=filter_priority,
                          all_count=all_count,
