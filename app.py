@@ -30,12 +30,37 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
     tasks = db.relationship('Task', backref='owner', lazy=True, cascade='all, delete-orphan')
+    
+    # 🎮 GAMIFICATION FIELDS
+    points = db.Column(db.Integer, default=0)
+    level = db.Column(db.Integer, default=1)
+    badges = db.Column(db.String(500), default='')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+    
+    # 🎮 GAMIFICATION METHODS
+    def add_points(self, points):
+        self.points += points
+        self.level = (self.points // 100) + 1
+        db.session.commit()
+    
+    def add_badge(self, badge_name):
+        badges_list = self.badges.split(',') if self.badges else []
+        if badge_name not in badges_list:
+            badges_list.append(badge_name)
+            self.badges = ','.join(badges_list)
+            db.session.commit()
+    
+    def get_badges(self):
+        return [b for b in self.badges.split(',') if b] if self.badges else []
+    
+    def points_to_next_level(self):
+        next_level_points = self.level * 100
+        return next_level_points - self.points
 
 class Task(db.Model):
     __tablename__ = 'tasks'
@@ -52,16 +77,30 @@ class Task(db.Model):
 with app.app_context():
     try:
         inspector = inspect(db.engine)
-        columns = [column['name'] for column in inspector.get_columns('tasks')]
-        if 'due_date' not in columns:
-            print('⚠️ Migrating database: Adding due_date column...')
-            with db.engine.connect() as conn:
-                try:
-                    conn.execute(db.text('ALTER TABLE tasks ADD COLUMN due_date TIMESTAMP'))
+        
+        if inspector.has_table('tasks'):
+            columns = [column['name'] for column in inspector.get_columns('tasks')]
+            if 'due_date' not in columns:
+                print('⚠️ Migrating database: Adding due_date column...')
+                with db.engine.connect() as conn:
+                    try:
+                        conn.execute(db.text('ALTER TABLE tasks ADD COLUMN due_date TIMESTAMP'))
+                        conn.commit()
+                        print('✅ Database migration successful!')
+                    except Exception as e:
+                        print(f'❌ Migration error: {e}')
+        
+        # 🎮 ADD GAMIFICATION COLUMNS
+        if inspector.has_table('users'):
+            user_columns = [column['name'] for column in inspector.get_columns('users')]
+            if 'points' not in user_columns:
+                with db.engine.connect() as conn:
+                    conn.execute(db.text("ALTER TABLE users ADD COLUMN points INTEGER DEFAULT 0"))
+                    conn.execute(db.text("ALTER TABLE users ADD COLUMN level INTEGER DEFAULT 1"))
+                    conn.execute(db.text("ALTER TABLE users ADD COLUMN badges VARCHAR(500) DEFAULT ''"))
                     conn.commit()
-                    print('✅ Database migration successful!')
-                except Exception as e:
-                    print(f'❌ Migration error: {e}')
+                    print('✅ Gamification columns added!')
+        
         db.create_all()
         print('✅ Database tables ready!')
     except Exception as e:
@@ -107,7 +146,8 @@ def register():
         flash('Email already registered!', 'danger')
         return redirect(url_for('auth'))
     
-    user = User(username=username, email=email)
+    # 🎮 ADD GAMIFICATION FIELDS
+    user = User(username=username, email=email, points=0, level=1, badges='')
     user.set_password(password)
     db.session.add(user)
     db.session.commit()
@@ -150,13 +190,17 @@ def dashboard():
     complete_count = Task.query.filter_by(user_id=current_user.id, status='complete').count()
     incomplete_count = Task.query.filter_by(user_id=current_user.id, status='incomplete').count()
     
+    # 🎮 GAMIFICATION DATA
+    user_badges = current_user.get_badges()
+    
     return render_template('dashboard.html', 
                          tasks=tasks,
                          filter_status=filter_status,
                          filter_priority=filter_priority,
                          all_count=all_count,
                          complete_count=complete_count,
-                         incomplete_count=incomplete_count)
+                         incomplete_count=incomplete_count,
+                         user_badges=user_badges)
 
 @app.route('/add_task', methods=['POST'])
 @login_required
@@ -190,9 +234,43 @@ def toggle_task(task_id):
         flash('Unauthorized action!', 'danger')
         return redirect(url_for('dashboard'))
     
-    task.status = 'complete' if task.status == 'incomplete' else 'incomplete'
-    db.session.commit()
+    # 🎮 AWARD POINTS WHEN COMPLETING TASK
+    if task.status == 'incomplete':
+        task.status = 'complete'
+        
+        # Award points based on priority
+        if task.priority == 'high':
+            points = 30
+            flash('🎉 Task completed! +30 points (High Priority)', 'success')
+        elif task.priority == 'medium':
+            points = 20
+            flash('🎉 Task completed! +20 points (Medium Priority)', 'success')
+        else:
+            points = 10
+            flash('🎉 Task completed! +10 points (Low Priority)', 'success')
+        
+        current_user.add_points(points)
+        
+        # 🏆 CHECK FOR BADGES
+        completed_tasks = Task.query.filter_by(user_id=current_user.id, status='complete').count()
+        
+        if completed_tasks == 1:
+            current_user.add_badge('First Step')
+            flash('🏆 New Badge: First Step!', 'success')
+        elif completed_tasks == 10:
+            current_user.add_badge('Task Master')
+            flash('🏆 New Badge: Task Master!', 'success')
+        elif completed_tasks == 50:
+            current_user.add_badge('Productivity Legend')
+            flash('🏆 New Badge: Productivity Legend!', 'success')
+        elif completed_tasks == 100:
+            current_user.add_badge('Century Club')
+            flash('🏆 New Badge: Century Club!', 'success')
+    else:
+        task.status = 'incomplete'
+        flash('Task marked as incomplete.', 'info')
     
+    db.session.commit()
     return redirect(url_for('dashboard'))
 
 @app.route('/delete_task/<int:task_id>')
@@ -230,6 +308,9 @@ def analytics():
     now = datetime.utcnow()
     overdue = len([t for t in tasks if t.due_date and t.due_date < now and t.status == 'incomplete'])
     
+    # 🎮 GAMIFICATION DATA
+    user_badges = current_user.get_badges()
+    
     return render_template('analytics.html',
                          total_tasks=total_tasks,
                          completed=completed,
@@ -238,7 +319,8 @@ def analytics():
                          medium_priority=medium_priority,
                          low_priority=low_priority,
                          overdue=overdue,
-                         tasks=tasks)
+                         tasks=tasks,
+                         user_badges=user_badges)
 
 @app.route('/admin')
 @login_required
