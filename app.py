@@ -364,11 +364,17 @@ def add_task():
     due_date_str = request.form.get('due_date')
     
     due_date = None
-    if due_date_str:
+if due_date_str:
+    try:
+        # Try datetime format first (with time)
+        due_date = datetime.strptime(due_date_str, '%Y-%m-%dT%H:%M')
+    except:
         try:
+            # Fallback to date only
             due_date = datetime.strptime(due_date_str, '%Y-%m-%d')
         except:
             pass
+
     
     task = Task(title=title, description=description, priority=priority, due_date=due_date, user_id=current_user.id)
     db.session.add(task)
@@ -564,4 +570,5 @@ def test_notification():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
