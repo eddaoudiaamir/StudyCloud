@@ -535,5 +535,33 @@ def logout():
     logout_user()
     return redirect(url_for('auth'))
 
+@app.route('/test_notification')
+@login_required
+def test_notification():
+    """Send test notification immediately"""
+    try:
+        # Send email
+        send_email_notification(
+            current_user.email,
+            "TEST - Notification System Working!",
+            "RIGHT NOW!"
+        )
+        
+        # Create in-app notification
+        notif = Notification(
+            user_id=current_user.id,
+            message=f"🧪 TEST: This is a test notification sent at {datetime.utcnow().strftime('%H:%M:%S')}"
+        )
+        db.session.add(notif)
+        db.session.commit()
+        
+        flash('✅ Test notification sent! Check your email AND bell icon!', 'success')
+    except Exception as e:
+        flash(f'❌ Error: {str(e)}', 'danger')
+    
+    return redirect(url_for('dashboard'))
+
+
 if __name__ == '__main__':
     app.run(debug=True)
+
