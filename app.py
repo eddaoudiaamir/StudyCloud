@@ -24,8 +24,8 @@ if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')  # Your Gmail
-app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')  # Your Gmail App Password
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME')
 
 # Initialize extensions
@@ -200,60 +200,68 @@ StudyCloud Team
 
 # 🔔 CHECK TASKS AND SEND NOTIFICATIONS
 def check_task_notifications():
-    with app.app_context():
-        print('🔍 Checking for task notifications...')
-        now = datetime.utcnow()
-        
-        # Get all incomplete tasks with due dates
-        tasks = Task.query.filter(
-            Task.status == 'incomplete',
-            Task.due_date.isnot(None)
-        ).all()
-        
-        for task in tasks:
-            user = User.query.get(task.user_id)
-            if not user:
-                continue
+    try:
+        with app.app_context():
+            print('🔍 Checking for task notifications...')
+            now = datetime.utcnow()
             
-            time_until_due = task.due_date - now
+            tasks = Task.query.filter(
+                Task.status == 'incomplete',
+                Task.due_date.isnot(None)
+            ).all()
             
-            # 1 DAY BEFORE (24 hours)
-            if not task.notified_1day and timedelta(hours=23, minutes=50) <= time_until_due <= timedelta(hours=24, minutes=10):
-                send_email_notification(user.email, task.title, "1 day")
-                notif = Notification(
-                    user_id=user.id,
-                    task_id=task.id,
-                    message=f"📋 Task '{task.title}' is due in 1 day!"
-                )
-                db.session.add(notif)
-                task.notified_1day = True
-                print(f'📧 1 day notification sent for: {task.title}')
-            
-            # 1 HOUR BEFORE
-            elif not task.notified_1hour and timedelta(minutes=50) <= time_until_due <= timedelta(hours=1, minutes=10):
-                send_email_notification(user.email, task.title, "1 hour")
-                notif = Notification(
-                    user_id=user.id,
-                    task_id=task.id,
-                    message=f"⚠️ Task '{task.title}' is due in 1 hour!"
-                )
-                db.session.add(notif)
-                task.notified_1hour = True
-                print(f'📧 1 hour notification sent for: {task.title}')
-            
-            # 10 MINUTES BEFORE
-            elif not task.notified_10min and timedelta(minutes=5) <= time_until_due <= timedelta(minutes=15):
-                send_email_notification(user.email, task.title, "10 minutes")
-                notif = Notification(
-                    user_id=user.id,
-                    task_id=task.id,
-                    message=f"🚨 Task '{task.title}' is due in 10 minutes!"
-                )
-                db.session.add(notif)
-                task.notified_10min = True
-                print(f'📧 10 min notification sent for: {task.title}')
-        
-        db.session.commit()
+            for task in tasks:
+                try:
+                    user = User.query.get(task.user_id)
+                    if not user:
+                        continue
+                    
+                    time_until_due = task.due_date - now
+                    
+                    # 1 DAY BEFORE (24 hours)
+                    if not task.notified_1day and timedelta(hours=23, minutes=50) <= time_until_due <= timedelta(hours=24, minutes=10):
+                        send_email_notification(user.email, task.title, "1 day")
+                        notif = Notification(
+                            user_id=user.id,
+                            task_id=task.id,
+                            message=f"📋 Task '{task.title}' is due in 1 day!"
+                        )
+                        db.session.add(notif)
+                        task.notified_1day = True
+                        print(f'📧 1 day notification sent for: {task.title}')
+                    
+                    # 1 HOUR BEFORE
+                    elif not task.notified_1hour and timedelta(minutes=50) <= time_until_due <= timedelta(hours=1, minutes=10):
+                        send_email_notification(user.email, task.title, "1 hour")
+                        notif = Notification(
+                            user_id=user.id,
+                            task_id=task.id,
+                            message=f"⚠️ Task '{task.title}' is due in 1 hour!"
+                        )
+                        db.session.add(notif)
+                        task.notified_1hour = True
+                        print(f'📧 1 hour notification sent for: {task.title}')
+                    
+                    # 10 MINUTES BEFORE
+                    elif not task.notified_10min and timedelta(minutes=5) <= time_until_due <= timedelta(minutes=15):
+                        send_email_notification(user.email, task.title, "10 minutes")
+                        notif = Notification(
+                            user_id=user.id,
+                            task_id=task.id,
+                            message=f"🚨 Task '{task.title}' is due in 10 minutes!"
+                        )
+                        db.session.add(notif)
+                        task.notified_10min = True
+                        print(f'📧 10 min notification sent for: {task.title}')
+                    
+                    db.session.commit()
+                except Exception as e:
+                    print(f'❌ Error processing task {task.id}: {e}')
+                    db.session.rollback()
+                    continue
+                    
+    except Exception as e:
+        print(f'❌ Scheduler error: {e}')
 
 # 🕐 SCHEDULER - Run every 5 minutes
 scheduler = BackgroundScheduler()
@@ -363,18 +371,18 @@ def add_task():
     priority = request.form.get('priority', 'medium')
     due_date_str = request.form.get('due_date')
     
+    # Parse due date - NOW SUPPORTS TIME!
     due_date = None
-if due_date_str:
-    try:
-        # Try datetime format first (with time)
-        due_date = datetime.strptime(due_date_str, '%Y-%m-%dT%H:%M')
-    except:
+    if due_date_str:
         try:
-            # Fallback to date only
-            due_date = datetime.strptime(due_date_str, '%Y-%m-%d')
+            # Try datetime format first (with time)
+            due_date = datetime.strptime(due_date_str, '%Y-%m-%dT%H:%M')
         except:
-            pass
-
+            try:
+                # Fallback to date only
+                due_date = datetime.strptime(due_date_str, '%Y-%m-%d')
+            except:
+                pass
     
     task = Task(title=title, description=description, priority=priority, due_date=due_date, user_id=current_user.id)
     db.session.add(task)
@@ -541,34 +549,5 @@ def logout():
     logout_user()
     return redirect(url_for('auth'))
 
-@app.route('/test_notification')
-@login_required
-def test_notification():
-    """Send test notification immediately"""
-    try:
-        # Send email
-        send_email_notification(
-            current_user.email,
-            "TEST - Notification System Working!",
-            "RIGHT NOW!"
-        )
-        
-        # Create in-app notification
-        notif = Notification(
-            user_id=current_user.id,
-            message=f"🧪 TEST: This is a test notification sent at {datetime.utcnow().strftime('%H:%M:%S')}"
-        )
-        db.session.add(notif)
-        db.session.commit()
-        
-        flash('✅ Test notification sent! Check your email AND bell icon!', 'success')
-    except Exception as e:
-        flash(f'❌ Error: {str(e)}', 'danger')
-    
-    return redirect(url_for('dashboard'))
-
-
 if __name__ == '__main__':
     app.run(debug=True)
-
-
